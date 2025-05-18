@@ -4,34 +4,48 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --radius: 0.5rem;
+    /* High contrast theme with pure white background and black text */
+    --background: 0 0% 100%; /* Pure white background (#FFFFFF) */
+    --foreground: 0 0% 0%; /* Pure black text (#000000) for maximum contrast */
+    --card: 0 0% 100%; /* White card background (#FFFFFF) */
+    --card-foreground: 0 0% 0%; /* Black text on cards (#000000) */
+    --popover: 0 0% 100%; /* White popover background (#FFFFFF) */
+    --popover-foreground: 0 0% 0%; /* Black text on popovers (#000000) */
+
+    /* Colorful buttons - kid-friendly but with good contrast */
+    --primary: 210 100% 50%; /* Bright blue (#0078FF) */
+    --primary-foreground: 0 0% 100%; /* White text on primary (#FFFFFF) */
+
+    --secondary: 130 100% 40%; /* Bright green (#00B300) */
+    --secondary-foreground: 0 0% 100%; /* White text on secondary (#FFFFFF) */
+
+    /* Light gray for backgrounds */
+    --muted: 0 0% 96%; /* Very light gray background (#F5F5F5) */
+    --muted-foreground: 0 0% 0%; /* Black text on muted backgrounds (#000000) */
+
+    /* Accent colors */
+    --accent: 45 100% 50%; /* Bright yellow (#FFC800) */
+    --accent-foreground: 0 0% 0%; /* Black text on accent (#000000) */
+
+    /* Destructive: Bright red for warnings/errors */
+    --destructive: 0 100% 50%; /* Bright red (#FF0000) */
+    --destructive-foreground: 0 0% 100%; /* White text on destructive (#FFFFFF) */
+
+    /* Border and input colors */
+    --border: 210 100% 88%; /* Light blue border (#D6EBFF) */
+    --input: 0 0% 95%; /* Light gray input background (#F2F2F2) */
+    --ring: 210 100% 50%; /* Primary blue for focus rings (#0078FF) */
+
+    /* Radius for rounded corners - consistent 10px radius */
+    --radius: 0.625rem; /* 10px */
 
     /* Sidebar specific variables */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 100%; /* White sidebar background (#FFFFFF) */
+    --sidebar-foreground: 0 0% 0%; /* Black text in sidebar (#000000) */
+    --sidebar-accent: 210 100% 50%; /* Blue accent in sidebar (#0078FF) */
+    --sidebar-accent-foreground: 0 0% 100%; /* White text on sidebar accent (#FFFFFF) */
+    --sidebar-border: 210 100% 88%; /* Light blue sidebar border (#D6EBFF) */
+    --sidebar-ring: 210 100% 50%; /* Blue focus ring in sidebar (#0078FF) */
   }
 
   .dark {
@@ -71,6 +85,436 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Pure white background */
+    background-color: #FFFFFF;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: #000000;
   }
+
+  /* Improved heading typography with consistent spacing */
+  h1 {
+    @apply font-bold tracking-tight text-black;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    font-size: 2.5rem;
+  }
+
+  h2 {
+    @apply font-bold tracking-tight text-black;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+    font-size: 2rem;
+  }
+
+  h3 {
+    @apply font-bold tracking-tight text-black;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+  }
+
+  h4, h5, h6 {
+    @apply font-bold tracking-tight text-black;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Improved link accessibility */
+  a {
+    color: #0078FF;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  a:hover {
+    color: #0066DD;
+  }
+
+  a:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Improved paragraph readability */
+  p {
+    color: #000000;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  /* Consistent form elements */
+  label {
+    @apply block text-black font-medium;
+    margin-bottom: 0.5rem;
+  }
+
+  input, textarea, select {
+    @apply bg-white text-black border-2 rounded-lg;
+    border-color: #D6EBFF;
+    padding: 0.5rem 0.75rem;
+    width: 100%;
+    transition: all 0.2s ease;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    @apply outline-none ring-2 ring-primary;
+    border-color: #0078FF;
+  }
+
+  /* Consistent spacing */
+  section {
+    padding: 2rem 0;
+  }
+
+  .container {
+    padding: 0 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding: 0 1.5rem;
+    }
+
+    section {
+      padding: 3rem 0;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding: 0 2rem;
+    }
+
+    section {
+      padding: 4rem 0;
+    }
+  }
+}
+
+/* Child-friendly animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+/* Standardized card styles with consistent styling */
+.stem-card {
+  @apply rounded-xl border-2 bg-white shadow-sm transition-all duration-300 hover:shadow-md;
+  border-color: #D6EBFF;
+  padding: 16px;
+}
+
+.stem-card:hover {
+  border-color: #0078FF;
+  transform: translateY(-3px);
+}
+
+.stem-card h2, .stem-card h3, .stem-card h4 {
+  @apply text-black font-bold;
+}
+
+.stem-card p {
+  @apply text-black;
+}
+
+/* Card with colored top border */
+.colored-card {
+  @apply rounded-xl border-2 bg-white shadow-sm transition-all duration-300 hover:shadow-md overflow-hidden;
+  border-color: #D6EBFF;
+  padding: 16px;
+}
+
+.colored-card h2, .colored-card h3, .colored-card h4 {
+  @apply text-black font-bold;
+}
+
+.colored-card p {
+  @apply text-black;
+}
+
+.colored-card.blue {
+  border-top: 4px solid #0078FF;
+}
+
+.colored-card.green {
+  border-top: 4px solid #00B300;
+}
+
+.colored-card.purple {
+  border-top: 4px solid #7B00FF;
+}
+
+.colored-card.orange {
+  border-top: 4px solid #FF6600;
+}
+
+.colored-card.yellow {
+  border-top: 4px solid #FFC800;
+}
+
+/* Program card - specific styling for program listings */
+.program-card {
+  @apply rounded-xl border-2 bg-white shadow-sm transition-all duration-300 hover:shadow-md overflow-hidden;
+  border-color: #D6EBFF;
+}
+
+.program-card .card-content {
+  padding: 16px;
+}
+
+.program-card h3 {
+  @apply text-black font-bold;
+}
+
+.program-card p {
+  @apply text-black;
+}
+
+.program-card:hover {
+  border-color: #0078FF;
+  transform: translateY(-3px);
+}
+
+.floating {
+  animation: float 6s ease-in-out infinite;
+}
+
+.bouncing {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.wiggling {
+  animation: wiggle 2s ease-in-out infinite;
+}
+
+/* Standardized button styles with consistent hover effects */
+.btn-primary {
+  @apply rounded-xl font-bold text-white transition-all duration-300;
+  background-color: #0078FF;
+  padding: 10px 20px;
+  box-shadow: 0 2px 6px rgba(0, 120, 255, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 120, 255, 0.3);
+  background-color: #0066DD;
+}
+
+.btn-secondary {
+  @apply rounded-xl font-bold text-white transition-all duration-300;
+  background-color: #00B300;
+  padding: 10px 20px;
+  box-shadow: 0 2px 6px rgba(0, 179, 0, 0.2);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 179, 0, 0.3);
+  background-color: #009900;
+}
+
+/* Fun gradient button for kid appeal */
+.btn-fun {
+  @apply rounded-xl font-bold text-white transition-all duration-300;
+  background: linear-gradient(90deg, #0078FF, #00B300);
+  padding: 10px 20px;
+  box-shadow: 0 2px 6px rgba(0, 120, 255, 0.2);
+}
+
+.btn-fun:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 120, 255, 0.3);
+  background: linear-gradient(90deg, #0066DD, #009900);
+}
+
+/* Additional colorful button styles */
+.btn-purple {
+  @apply rounded-xl font-bold text-white transition-all duration-300;
+  background-color: #7B00FF;
+  padding: 10px 20px;
+  box-shadow: 0 2px 6px rgba(123, 0, 255, 0.2);
+}
+
+.btn-purple:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(123, 0, 255, 0.3);
+  background-color: #6A00DD;
+}
+
+.btn-orange {
+  @apply rounded-xl font-bold text-white transition-all duration-300;
+  background-color: #FF6600;
+  padding: 10px 20px;
+  box-shadow: 0 2px 6px rgba(255, 102, 0, 0.2);
+}
+
+.btn-orange:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
+  background-color: #EE5500;
+}
+
+.btn-yellow {
+  @apply rounded-xl font-bold text-black transition-all duration-300;
+  background-color: #FFC800;
+  padding: 10px 20px;
+  box-shadow: 0 2px 6px rgba(255, 200, 0, 0.2);
+}
+
+.btn-yellow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 200, 0, 0.3);
+  background-color: #EEBB00;
+}
+
+/* Outline button style */
+.btn-outline {
+  @apply rounded-xl font-bold transition-all duration-300;
+  background-color: transparent;
+  padding: 10px 20px;
+  border: 2px solid #0078FF;
+  color: #0078FF;
+}
+
+.btn-outline:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 120, 255, 0.1);
+  background-color: #F0F8FF;
+}
+
+/* Speech bubble with improved contrast and readability */
+.speech-bubble {
+  @apply relative bg-white p-4 rounded-xl shadow-sm;
+  border: 2px solid #D6EBFF;
+}
+
+.speech-bubble p {
+  color: #000000;
+  margin-bottom: 0;
+}
+
+.speech-bubble:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  width: 0;
+  height: 0;
+  border: 12px solid transparent;
+  border-top-color: white;
+  border-bottom: 0;
+  margin-left: -12px;
+  margin-bottom: -12px;
+}
+
+.speech-bubble:before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  width: 0;
+  height: 0;
+  border: 13px solid transparent;
+  border-top-color: #D6EBFF;
+  border-bottom: 0;
+  margin-left: -13px;
+  margin-bottom: -13px;
+  z-index: -1;
+}
+
+/* Badge styles for labels and tags */
+.badge {
+  @apply inline-flex items-center justify-center rounded-full px-3 py-1 text-sm font-medium;
+  background-color: #F0F8FF;
+  color: #0078FF;
+  border: 1px solid #D6EBFF;
+}
+
+.badge-primary {
+  background-color: #0078FF;
+  color: white;
+}
+
+.badge-secondary {
+  background-color: #00B300;
+  color: white;
+}
+
+.badge-accent {
+  background-color: #FFC800;
+  color: black;
+}
+
+/* Alert/notification styles */
+.alert {
+  @apply rounded-xl p-4 border-2 mb-4;
+  background-color: #F0F8FF;
+  border-color: #D6EBFF;
+}
+
+.alert p {
+  color: #000000;
+  margin-bottom: 0;
+}
+
+.alert-success {
+  background-color: #F0FFF0;
+  border-color: #D6FFD6;
+}
+
+.alert-warning {
+  background-color: #FFFCF0;
+  border-color: #FFEDB3;
+}
+
+.alert-error {
+  background-color: #FFF0F0;
+  border-color: #FFD6D6;
+}
+
+/* Improved navigation styles */
+.nav-link {
+  @apply inline-flex items-center rounded-lg px-3 py-2 text-black font-medium transition-colors;
+}
+
+.nav-link:hover {
+  background-color: #F0F8FF;
+  color: #0078FF;
+}
+
+.nav-link.active {
+  background-color: #F0F8FF;
+  color: #0078FF;
+  font-weight: bold;
+}
+
+/* Divider with optional label */
+.divider {
+  @apply flex items-center my-6;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #D6EBFF;
+}
+
+.divider-label {
+  @apply px-3 text-sm text-gray-500;
 }
 

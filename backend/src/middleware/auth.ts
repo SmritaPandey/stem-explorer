@@ -1,15 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import supabase from '../db/supabase';
 
 export interface AuthRequest extends Request {
   user?: {
-    id: number;
+    id: string;
     email: string;
+    role?: string;
   };
 }
 
-export const authenticateToken = (
-  req: AuthRequest,
+// Type assertion function to convert Express.Request to AuthRequest
+const asAuthRequest = (req: Request): AuthRequest => req as AuthRequest;
+
+export const authenticateToken = async (
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
@@ -21,13 +25,24 @@ export const authenticateToken = (
   }
 
   try {
-    const user = jwt.verify(token, process.env.JWT_SECRET!) as {
-      id: number;
-      email: string;
+    // Verify the JWT token with Supabase
+    const { data, error } = await supabase.auth.getUser(token);
+
+    if (error || !data.user) {
+      return res.status(403).json({ error: 'Invalid or expired token' });
+    }
+
+    // Set the user data in the request object
+    const authReq = asAuthRequest(req);
+    authReq.user = {
+      id: data.user.id,
+      email: data.user.email || '',
+      role: data.user.user_metadata?.role as string | undefined
     };
-    req.user = user;
+
     next();
   } catch (error) {
+    console.error('Authentication error:', error);
     return res.status(403).json({ error: 'Invalid token' });
   }
 };

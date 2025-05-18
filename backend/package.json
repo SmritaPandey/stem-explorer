@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "nodemon src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "migrate": "ts-node src/db/migrate.ts",
+    "init-db": "ts-node src/db/init-db.ts"
   },
   "dependencies": {
     "@types/cookie-parser": "^1.4.8",

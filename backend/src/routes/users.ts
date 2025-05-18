@@ -1,7 +1,6 @@
 import express from 'express';
 import { z } from 'zod';
-import bcrypt from 'bcryptjs';
-import pool from '../db';
+import supabase from '../db/supabase';
 import { AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
@@ -9,10 +8,8 @@ const router = express.Router();
 const profileUpdateSchema = z.object({
   firstName: z.string().min(2).optional(),
   lastName: z.string().min(2).optional(),
-  bio: z.string().optional(),
-  age: z.number().min(5).max(18).optional(),
-  grade: z.string().optional(),
-  interests: z.array(z.string()).optional()
+  phone: z.string().optional(),
+  profilePicture: z.string().url().optional()
 });
 
 const passwordUpdateSchema = z.object({
@@ -21,77 +18,112 @@ const passwordUpdateSchema = z.object({
 });
 
 // Get user profile
-router.get('/profile', async (req: AuthRequest, res) => {
+router.get('/profile', async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT id, email, first_name, last_name, bio, age, grade, interests FROM users WHERE id = $1',
-      [req.user!.id]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+    // Type assertion to AuthRequest
+    const authReq = req as AuthRequest;
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', authReq.user!.id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      throw error;
     }
-    
-    res.json(result.rows[0]);
+
+    // Format the response
+    const profile = {
+      id: data.id,
+      email: data.email,
+      firstName: data.first_name,
+      lastName: data.last_name,
+      phone: data.phone,
+      role: data.role,
+      profilePicture: data.profile_picture,
+      createdAt: data.created_at
+    };
+
+    res.json(profile);
   } catch (error) {
+    console.error('Error fetching profile:', error);
     res.status(500).json({ error: 'Failed to fetch profile' });
   }
 });
 
 // Update user profile
-router.put('/profile', async (req: AuthRequest, res) => {
+router.put('/profile', async (req, res) => {
   try {
+    // Type assertion to AuthRequest
+    const authReq = req as AuthRequest;
+
     const updates = profileUpdateSchema.parse(req.body);
-    
-    const setClause = Object.entries(updates)
-      .map(([key, _], index) => `${key} = $${index + 2}`)
-      .join(', ');
-    
-    const values = Object.values(updates);
-    
-    const result = await pool.query(
-      `UPDATE users SET ${setClause} WHERE id = $1 RETURNING id, email, first_name, last_name, bio, age, grade, interests`,
-      [req.user!.id, ...values]
-    );
-    
-    res.json(result.rows[0]);
+
+    // Convert camelCase to snake_case for database
+    const dbUpdates: Record<string, any> = {};
+    if (updates.firstName) dbUpdates.first_name = updates.firstName;
+    if (updates.lastName) dbUpdates.last_name = updates.lastName;
+    if (updates.phone) dbUpdates.phone = updates.phone;
+    if (updates.profilePicture) dbUpdates.profile_picture = updates.profilePicture;
+
+    // Update the profile
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(dbUpdates)
+      .eq('id', authReq.user!.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Format the response
+    const profile = {
+      id: data.id,
+      email: data.email,
+      firstName: data.first_name,
+      lastName: data.last_name,
+      phone: data.phone,
+      role: data.role,
+      profilePicture: data.profile_picture,
+      createdAt: data.created_at
+    };
+
+    res.json(profile);
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: error.errors });
     } else {
+      console.error('Error updating profile:', error);
       res.status(500).json({ error: 'Failed to update profile' });
     }
   }
 });
 
 // Update password
-router.put('/password', async (req: AuthRequest, res) => {
+router.put('/password', async (req, res) => {
   try {
+    // Type assertion to AuthRequest
+    const authReq = req as AuthRequest;
+
     const { currentPassword, newPassword } = passwordUpdateSchema.parse(req.body);
-    
-    // Verify current password
-    const user = await pool.query(
-      'SELECT password_hash FROM users WHERE id = $1',
-      [req.user!.id]
-    );
-    
-    const validPassword = await bcrypt.compare(currentPassword, user.rows[0].password_hash);
-    if (!validPassword) {
-      return res.status(400).json({ error: 'Current password is incorrect' });
-    }
-    
-    // Update password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await pool.query(
-      'UPDATE users SET password_hash = $1 WHERE id = $2',
-      [hashedPassword, req.user!.id]
-    );
-    
+
+    // Update password using Supabase Auth API
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (error) throw error;
+
     res.json({ message: 'Password updated successfully' });
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: error.errors });
     } else {
+      console.error('Error updating password:', error);
       res.status(500).json({ error: 'Failed to update password' });
     }
   }

@@ -4,7 +4,7 @@ A comprehensive web platform for STEM education programs, allowing students to b
 
 ## Features
 
-- **User Authentication**: Secure login with email/password and social login options (Google)
+- **User Authentication**: Secure login with email/password and social login options (Google, GitHub)
 - **Program Browsing**: Browse available STEM programs with filtering options
 - **Booking System**: Book and manage class registrations
 - **Admin Panel**: Manage programs, bookings, and users
@@ -13,10 +13,10 @@ A comprehensive web platform for STEM education programs, allowing students to b
 
 ## Technology Stack
 
-- **Frontend**: Next.js, React, TypeScript, Tailwind CSS
+- **Frontend**: Next.js 15, React, TypeScript, Tailwind CSS
 - **Backend**: Node.js, Express
-- **Database**: SQL (PostgreSQL)
-- **Authentication**: JWT, Passport.js
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
 - **Styling**: Tailwind CSS with shadcn/ui components
 
 ## Getting Started
@@ -24,52 +24,84 @@ A comprehensive web platform for STEM education programs, allowing students to b
 ### Prerequisites
 
 - Node.js (v18 or higher)
-- npm or pnpm
-- PostgreSQL (optional, can use mock database for development)
+- npm or yarn
+- Supabase account (free tier available)
 
 ### Installation
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/stem-platform.git
-   cd stem-platform
+   git clone https://github.com/SmritaPandey/stem-explorer.git
+   cd stem-explorer
    ```
 
 2. Install dependencies:
    ```bash
    npm install
    # or
-   pnpm install
+   yarn install
    ```
 
-3. Set up environment variables:
-   Create a `.env` file in the root directory with the following variables:
+3. Set up Supabase:
+   - Create a new project at [supabase.com](https://supabase.com)
+   - Get your Supabase URL and anon key from the project settings
+   - Run the SQL scripts in the `supabase` directory to set up your database schema
+
+4. Set up environment variables:
+   Create a `.env.local` file in the root directory with the following variables:
    ```
-   # Frontend
-   NEXT_PUBLIC_API_URL=http://localhost:3001
-   
-   # Backend
-   JWT_SECRET=your_jwt_secret
-   DATABASE_URL=your_database_url
+   # Supabase Configuration
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+   # API Configuration (if using the backend server)
+   NEXT_PUBLIC_API_URL=http://localhost:3001/api
    ```
 
-4. Start the development server:
+5. Start the development server:
    ```bash
    # Start the frontend
    npm run dev
    # or
-   pnpm dev
-   
-   # Start the backend (in a separate terminal)
+   yarn dev
+
+   # Start the backend (optional, in a separate terminal)
    cd backend
    npm run dev
    # or
-   pnpm dev
+   yarn dev
    ```
+
+6. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+
+## Database Setup
+
+The application uses Supabase as its database and authentication provider. The database schema includes:
+
+- **profiles**: User profiles linked to Supabase Auth
+- **programs**: STEM programs/courses offered
+- **program_sessions**: Specific instances of programs with dates and times
+- **bookings**: User bookings for program sessions
+- **reviews**: User reviews of programs
+
+To set up the database:
+1. Go to the SQL Editor in your Supabase dashboard
+2. Run the `schema.sql` script from the `supabase` directory
+3. Optionally, run the `sample_data.sql` script to add sample data
 
 ## Deployment
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
+For deployment:
+
+1. Deploy the frontend to Vercel or Netlify:
+   - Connect your GitHub repository
+   - Set the environment variables in the hosting provider
+   - Deploy the application
+
+2. For the backend (optional):
+   - Deploy to a service like Heroku, Railway, or Render
+   - Set the environment variables in the hosting provider
+   - Update the `NEXT_PUBLIC_API_URL` in your frontend deployment
 
 ## License
 

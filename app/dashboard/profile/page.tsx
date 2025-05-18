@@ -68,19 +68,19 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Profile</h1>
+      <h1 className="text-3xl font-bold text-black">Profile</h1>
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="stem-card">
           <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
-            <CardDescription>Update your personal details here</CardDescription>
+            <CardTitle className="text-black">Personal Information</CardTitle>
+            <CardDescription className="text-black">Update your personal details here</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="flex items-center space-x-4">
-                <Avatar className="h-20 w-20">
+                <Avatar className="h-20 w-20 border-2 border-[#D6EBFF]">
                   <AvatarImage src={profile.avatar} />
-                  <AvatarFallback>
+                  <AvatarFallback className="bg-[#0078FF] text-white">
                     {profile.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
@@ -92,50 +92,50 @@ export default function ProfilePage() {
                     accept="image/*"
                     onChange={handlePhotoChange}
                   />
-                  <Button type="button" variant="outline" onClick={() => document.getElementById('photo')?.click()}>
+                  <Button type="button" className="btn-outline" onClick={() => document.getElementById('photo')?.click()}>
                     Change Photo
                   </Button>
                 </div>
               </div>
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="name" className="text-black">Full Name</Label>
                   <div className="flex">
-                    <User className="w-4 h-4 mt-3 -mr-8 z-10 opacity-50" />
-                    <Input 
-                      id="name" 
+                    <User className="w-4 h-4 mt-3 -mr-8 z-10 text-[#0078FF]" />
+                    <Input
+                      id="name"
                       value={profile.name}
                       onChange={handleInputChange}
-                      className="pl-10" 
+                      className="pl-10 border-[#D6EBFF] text-black"
                     />
                   </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="text-black">Email</Label>
                   <div className="flex">
-                    <Mail className="w-4 h-4 mt-3 -mr-8 z-10 opacity-50" />
-                    <Input 
-                      id="email" 
+                    <Mail className="w-4 h-4 mt-3 -mr-8 z-10 text-[#0078FF]" />
+                    <Input
+                      id="email"
                       type="email"
                       value={profile.email}
                       onChange={handleInputChange}
-                      className="pl-10" 
+                      className="pl-10 border-[#D6EBFF] text-black"
                     />
                   </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone" className="text-black">Phone</Label>
                   <div className="flex">
-                    <Phone className="w-4 h-4 mt-3 -mr-8 z-10 opacity-50" />
-                    <Input 
-                      id="phone" 
+                    <Phone className="w-4 h-4 mt-3 -mr-8 z-10 text-[#0078FF]" />
+                    <Input
+                      id="phone"
                       value={profile.phone}
                       onChange={handleInputChange}
-                      className="pl-10" 
+                      className="pl-10 border-[#D6EBFF] text-black"
                     />
                   </div>
                 </div>
-                <Button type="submit" disabled={loading}>
+                <Button type="submit" disabled={loading} className="btn-primary">
                   {loading ? "Saving..." : "Save Changes"}
                 </Button>
               </div>

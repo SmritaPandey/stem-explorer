@@ -5,9 +5,9 @@ This guide provides step-by-step instructions for deploying the STEM Explorer pl
 ## Prerequisites
 
 - Node.js (v18 or higher)
-- PostgreSQL database
+- Supabase account (free tier available)
 - Domain name (for production deployment)
-- SSL certificate (recommended for production)
+- SSL certificate (automatically provided by most hosting platforms)
 - Stripe account (for payment processing)
 - Google/GitHub developer accounts (for OAuth)
 
@@ -24,92 +24,111 @@ cd stem-explorer
 
 #### Set Up Environment Variables
 
-1. Create backend environment file:
+1. Create frontend environment file:
 
 ```bash
-cp .env.example .env
+cp .env.local.example .env.local
 ```
 
-2. Edit `.env` with your production values:
+2. Edit `.env.local` with your production values:
+
+```
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# API Configuration (if using the backend server)
+NEXT_PUBLIC_API_URL=https://your-domain.com/api
+
+# Site Configuration
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+
+# Stripe Configuration (if using Stripe)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+```
+
+3. If using the backend server, create backend environment file:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+4. Edit `backend/.env` with your production values:
 
 ```
 # Server Configuration
 PORT=3001
 NODE_ENV=production
 
-# Database Configuration
-DB_USER=your_db_user
-DB_HOST=your_db_host
-DB_NAME=stem_explorer
-DB_PASSWORD=your_secure_password
-DB_PORT=5432
-USE_MOCK_DB=false
+# Supabase Configuration
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_KEY=your_supabase_service_key
 
-# JWT Configuration
+# JWT Configuration (for compatibility with existing code)
 JWT_SECRET=your_secure_random_string_at_least_32_chars
-JWT_ACCESS_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=7d
-JWT_ISSUER=stem-explorer
-JWT_AUDIENCE=stem-explorer-client
 
 # CORS Configuration
 FRONTEND_URL=https://your-domain.com
 
-# OAuth Configuration
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_CALLBACK_URL=https://your-domain.com/api/auth/google/callback
-
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
-GITHUB_CALLBACK_URL=https://your-domain.com/api/auth/github/callback
-
-# Stripe Configuration
+# Stripe Configuration (if using Stripe)
 STRIPE_SECRET_KEY=your_stripe_secret_key
 STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
-STRIPE_PRICE_ID_PREFIX=price_
-
-# Security
-BCRYPT_SALT_ROUNDS=12
 ```
 
-3. Create frontend environment file:
+### 2. Set Up the Supabase Database
+
+1. Log in to your [Supabase Dashboard](https://app.supabase.com)
+2. Select your project
+3. Go to the SQL Editor
+4. Run the `schema.sql` script from the `supabase` directory:
+   - Copy the contents of `supabase/schema.sql`
+   - Paste into the SQL Editor
+   - Click "Run" to create all tables and security policies
+5. Optionally, run the `sample_data.sql` script to add sample data
+
+### 3. Configure Authentication
+
+1. In your Supabase dashboard, go to Authentication > Settings
+2. Under "Email Auth", ensure "Enable Email Signup" is turned on
+3. Configure password requirements as needed
+4. Set up redirect URLs (add your production domain)
+
+#### Set Up OAuth Providers (Optional)
+
+##### Google OAuth:
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Go to "APIs & Services" > "Credentials"
+4. Create an OAuth 2.0 Client ID
+5. Add authorized redirect URIs:
+   - `https://[YOUR_SUPABASE_PROJECT].supabase.co/auth/v1/callback`
+   - `https://[YOUR_DOMAIN]/auth/callback`
+6. Copy the Client ID and Client Secret
+7. In Supabase, go to Authentication > Providers > Google
+8. Enable Google auth and paste your Client ID and Client Secret
+
+##### GitHub OAuth:
+
+1. Go to your GitHub account settings
+2. Go to "Developer settings" > "OAuth Apps"
+3. Create a new OAuth App
+4. Add the callback URL: `https://[YOUR_SUPABASE_PROJECT].supabase.co/auth/v1/callback`
+5. Copy the Client ID and Client Secret
+6. In Supabase, go to Authentication > Providers > GitHub
+7. Enable GitHub auth and paste your Client ID and Client Secret
+
+### 4. Build the Application
+
+1. Install dependencies and build the frontend:
 
 ```bash
-cp .env.local.example .env.local
+npm install
+npm run build
 ```
 
-4. Edit `.env.local` with your production values:
-
-```
-# API Configuration
-NEXT_PUBLIC_API_URL=https://your-domain.com/api
-
-# Site Configuration
-NEXT_PUBLIC_SITE_URL=https://your-domain.com
-
-# Stripe Configuration
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
-```
-
-### 2. Set Up the Database
-
-1. Create a PostgreSQL database:
-
-```bash
-createdb stem_explorer
-```
-
-2. Run migrations:
-
-```bash
-cd backend
-npm run migrate
-```
-
-### 3. Build the Application
-
-1. Install dependencies and build the backend:
+2. If using the backend server, install dependencies and build it:
 
 ```bash
 cd backend
@@ -118,91 +137,65 @@ npm run build
 cd ..
 ```
 
-2. Install dependencies and build the frontend:
+### 5. Deployment Options
 
-```bash
-npm install
-npm run build
-```
+#### Option 1: Vercel Deployment (Recommended)
 
-### 4. Deployment Options
+1. Push your code to a GitHub repository
+2. Log in to [Vercel](https://vercel.com)
+3. Click "New Project" and import your GitHub repository
+4. Configure the project:
+   - Framework Preset: Next.js
+   - Root Directory: ./
+   - Build Command: `npm run build` or `next build`
+5. Add environment variables:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=https://[YOUR_PROJECT_ID].supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=[YOUR_SUPABASE_ANON_KEY]
+   NEXT_PUBLIC_API_URL=[YOUR_BACKEND_URL]/api (if using a backend)
+   ```
+6. Click "Deploy"
 
-#### Option 1: Traditional Server Deployment
+#### Option 2: Netlify Deployment
 
-1. Set up a web server (Nginx or Apache) to serve the frontend and proxy API requests to the backend.
+1. Push your code to a GitHub repository
+2. Log in to [Netlify](https://netlify.com)
+3. Click "New site from Git" and select your GitHub repository
+4. Configure the build settings:
+   - Build command: `npm run build` or `next build`
+   - Publish directory: `.next`
+5. Add environment variables in the "Advanced build settings"
+6. Click "Deploy site"
 
-Example Nginx configuration:
+#### Option 3: Backend Deployment (Optional)
 
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-    
-    # Redirect HTTP to HTTPS
-    return 301 https://$host$request_uri;
-}
+If you're using the Express backend for additional functionality:
 
-server {
-    listen 443 ssl;
-    server_name your-domain.com;
-    
-    ssl_certificate /path/to/certificate.crt;
-    ssl_certificate_key /path/to/private.key;
-    
-    # Frontend
-    location / {
-        root /path/to/stem-explorer/.next/;
-        try_files $uri $uri/ /index.html;
-    }
-    
-    # Backend API
-    location /api/ {
-        proxy_pass http://localhost:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
+##### Deploying to Heroku
 
-2. Use a process manager like PM2 to keep the application running:
+1. Create a new app on [Heroku](https://dashboard.heroku.com/)
+2. Connect your GitHub repository or use the Heroku CLI to deploy
+3. Set environment variables in the Settings tab:
+   ```
+   PORT=3001
+   NODE_ENV=production
+   SUPABASE_URL=https://[YOUR_PROJECT_ID].supabase.co
+   SUPABASE_ANON_KEY=[YOUR_SUPABASE_ANON_KEY]
+   SUPABASE_SERVICE_KEY=[YOUR_SUPABASE_SERVICE_KEY]
+   JWT_SECRET=[YOUR_JWT_SECRET]
+   ```
+4. Deploy the application
 
-```bash
-# Install PM2
-npm install -g pm2
+##### Deploying to Railway
 
-# Start the backend
-cd backend
-pm2 start dist/index.js --name stem-explorer-backend
+1. Create a new project on [Railway](https://railway.app/)
+2. Connect your GitHub repository
+3. Add environment variables
+4. Deploy the application
 
-# Start the frontend (if not using Nginx/Apache for static files)
-cd ..
-pm2 start npm --name stem-explorer-frontend -- start
-```
+#### Option 4: Docker Deployment
 
-#### Option 2: Docker Deployment
-
-1. Create a `Dockerfile` for the backend:
-
-```dockerfile
-FROM node:18-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm install
-
-COPY . .
-RUN npm run build
-
-EXPOSE 3001
-
-CMD ["node", "dist/index.js"]
-```
-
-2. Create a `Dockerfile` for the frontend:
+1. Create a `Dockerfile` for the frontend:
 
 ```dockerfile
 FROM node:18-alpine AS builder
@@ -229,6 +222,24 @@ EXPOSE 3000
 CMD ["npm", "start"]
 ```
 
+2. If using the backend, create a `Dockerfile` for it:
+
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+EXPOSE 3001
+
+CMD ["node", "dist/index.js"]
+```
+
 3. Create a `docker-compose.yml` file:
 
 ```yaml
@@ -238,14 +249,15 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile.frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     environment:
+      - NEXT_PUBLIC_SUPABASE_URL=https://[YOUR_PROJECT_ID].supabase.co
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=[YOUR_SUPABASE_ANON_KEY]
       - NEXT_PUBLIC_API_URL=http://backend:3001/api
-    depends_on:
-      - backend
 
+  # Optional backend service
   backend:
     build:
       context: ./backend
@@ -255,100 +267,80 @@ services:
     environment:
       - PORT=3001
       - NODE_ENV=production
-      - DB_HOST=db
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=stem_explorer
-      - DB_PORT=5432
-      - JWT_SECRET=${JWT_SECRET}
+      - SUPABASE_URL=https://[YOUR_PROJECT_ID].supabase.co
+      - SUPABASE_ANON_KEY=[YOUR_SUPABASE_ANON_KEY]
+      - SUPABASE_SERVICE_KEY=[YOUR_SUPABASE_SERVICE_KEY]
+      - JWT_SECRET=[YOUR_JWT_SECRET]
       - FRONTEND_URL=http://frontend:3000
-    depends_on:
-      - db
-
-  db:
-    image: postgres:14
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=stem_explorer
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:
 ```
 
-#### Option 3: Cloud Platform Deployment
+### 6. Domain Configuration
 
-1. **Vercel** (for frontend):
-   - Connect your GitHub repository to Vercel
-   - Configure environment variables in the Vercel dashboard
-   - Deploy with automatic CI/CD
+#### Custom Domain on Vercel
 
-2. **Heroku** (for backend):
-   - Create a new Heroku app
-   - Add PostgreSQL add-on
-   - Configure environment variables in the Heroku dashboard
-   - Deploy with Git or GitHub integration
+1. Go to your Vercel project
+2. Navigate to "Settings" > "Domains"
+3. Add your custom domain
+4. Follow the instructions to configure DNS settings
 
-### 5. SSL Configuration
+#### Custom Domain on Netlify
 
-For production, always use HTTPS:
+1. Go to your Netlify site
+2. Navigate to "Settings" > "Domain management"
+3. Click "Add custom domain"
+4. Follow the instructions to configure DNS settings
 
-1. Obtain an SSL certificate (Let's Encrypt is free)
-2. Configure your web server to use SSL
-3. Update all callback URLs and environment variables to use HTTPS
-
-### 6. Monitoring and Maintenance
+### 7. Monitoring and Maintenance
 
 1. Set up logging:
-   - Use a service like Logtail, Papertrail, or ELK stack
-   - Configure application logging to capture errors and important events
+   - Use Supabase's built-in logging for database operations
+   - For frontend, consider using a service like Sentry or LogRocket
+   - For backend (if used), consider Logtail or Papertrail
 
 2. Set up monitoring:
    - Use a service like UptimeRobot, New Relic, or Datadog
-   - Monitor server health, response times, and error rates
+   - Monitor API response times and error rates
+   - Set up alerts for critical issues
 
 3. Regular maintenance:
    - Keep dependencies updated
-   - Regularly backup the database
+   - Regularly backup your Supabase database
    - Monitor security advisories for your dependencies
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Database Connection Issues**:
-   - Check database credentials
-   - Ensure the database server is running and accessible
-   - Check network/firewall settings
+1. **Supabase Connection Issues**:
+   - Check Supabase URL and anon key
+   - Verify that your Supabase project is active
+   - Check network/firewall settings that might block connections
 
 2. **Authentication Issues**:
-   - Verify JWT_SECRET is set correctly
-   - Check OAuth credentials and callback URLs
-   - Ensure cookies are being set with the correct domain
+   - Verify OAuth redirect URLs are correctly set up
+   - Check that Supabase authentication settings are properly configured
+   - Ensure your application is using the correct Supabase project
 
-3. **CORS Issues**:
-   - Ensure FRONTEND_URL is set correctly
-   - Check that the backend CORS configuration matches your frontend domain
+3. **Row Level Security (RLS) Issues**:
+   - Check that RLS policies are correctly set up in Supabase
+   - Verify that users have the appropriate permissions
+   - Test queries directly in the Supabase SQL Editor
 
-4. **SSL/HTTPS Issues**:
-   - Verify SSL certificate is valid and properly installed
-   - Ensure all URLs use HTTPS in production
+4. **CORS Issues**:
+   - Ensure your frontend domain is allowed in Supabase settings
+   - If using a backend, check that CORS is properly configured
 
 ## Security Best Practices
 
 1. **Environment Variables**:
    - Never commit .env files to version control
    - Use strong, unique values for secrets
-   - Rotate secrets periodically
+   - Rotate Supabase keys periodically
 
 2. **Database Security**:
-   - Use a strong password for the database
-   - Limit database access to necessary IP addresses
-   - Regularly backup the database
+   - Implement proper Row Level Security (RLS) policies
+   - Use prepared statements for all SQL queries
+   - Regularly backup your Supabase database
 
 3. **API Security**:
    - Implement rate limiting
@@ -356,6 +348,18 @@ For production, always use HTTPS:
    - Validate and sanitize all user inputs
 
 4. **Authentication Security**:
-   - Use HTTP-only cookies for refresh tokens
-   - Implement token rotation
-   - Set appropriate token expiration times
+   - Configure appropriate session timeouts in Supabase
+   - Use multi-factor authentication for admin accounts
+   - Regularly audit user accounts and permissions
+
+## Post-Deployment Checklist
+
+After deploying, verify:
+
+1. User registration and login work correctly
+2. OAuth providers (Google, GitHub) work if configured
+3. Program listing and details pages load properly
+4. Booking functionality works
+5. Admin features are accessible to admin users
+6. All forms submit correctly
+7. Responsive design works on mobile devices

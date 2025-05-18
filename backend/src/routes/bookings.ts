@@ -1,109 +1,199 @@
 import express from 'express';
 import { z } from 'zod';
-import pool from '../db';
+import supabase from '../db/supabase';
 import { AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
 
 const bookingSchema = z.object({
-  programId: z.number(),
-  status: z.enum(['Pending', 'Confirmed', 'Cancelled'])
+  sessionId: z.string().uuid(),
+  paymentStatus: z.enum(['pending', 'paid', 'refunded']).default('pending'),
+  amountPaid: z.number().min(0)
 });
 
 // Get user's bookings
-router.get('/', async (req: AuthRequest, res) => {
+router.get('/', async (req, res) => {
   try {
-    const result = await pool.query(
-      `SELECT b.*, p.title, p.date, p.time, p.location 
-       FROM bookings b 
-       JOIN programs p ON b.program_id = p.id 
-       WHERE b.user_id = $1 
-       ORDER BY b.created_at DESC`,
-      [req.user!.id]
-    );
-    res.json(result.rows);
+    // Type assertion to AuthRequest
+    const authReq = req as AuthRequest;
+
+    // Get bookings with program and session details
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        program_sessions!inner (
+          *,
+          programs!inner (*)
+        )
+      `)
+      .eq('user_id', authReq.user!.id)
+      .order('booking_date', { ascending: false });
+
+    if (error) throw error;
+
+    // Format the data for the frontend
+    const formattedBookings = data.map(booking => ({
+      id: booking.id,
+      status: booking.status,
+      paymentStatus: booking.payment_status,
+      amountPaid: booking.amount_paid,
+      bookingDate: booking.booking_date,
+      program: {
+        id: booking.program_sessions.programs.id,
+        title: booking.program_sessions.programs.title,
+        description: booking.program_sessions.programs.description,
+        location: booking.program_sessions.programs.location,
+        imageUrl: booking.program_sessions.programs.image_url
+      },
+      session: {
+        id: booking.program_sessions.id,
+        startTime: booking.program_sessions.start_time,
+        endTime: booking.program_sessions.end_time,
+        isCancelled: booking.program_sessions.is_cancelled
+      }
+    }));
+
+    res.json(formattedBookings);
   } catch (error) {
+    console.error('Error fetching bookings:', error);
     res.status(500).json({ error: 'Failed to fetch bookings' });
   }
 });
 
 // Create new booking
-router.post('/', async (req: AuthRequest, res) => {
+router.post('/', async (req, res) => {
   try {
-    const { programId } = bookingSchema.parse(req.body);
+    // Type assertion to AuthRequest
+    const authReq = req as AuthRequest;
 
-    // Check if program exists and has available seats
-    const programResult = await pool.query(
-      'SELECT seats FROM programs WHERE id = $1',
-      [programId]
-    );
+    const { sessionId, paymentStatus, amountPaid } = bookingSchema.parse(req.body);
 
-    if (programResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Program not found' });
+    // Get the session to check availability
+    const { data: session, error: sessionError } = await supabase
+      .from('program_sessions')
+      .select('*, programs!inner(*)')
+      .eq('id', sessionId)
+      .single();
+
+    if (sessionError) {
+      if (sessionError.code === 'PGRST116') {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+      throw sessionError;
     }
 
-    if (programResult.rows[0].seats <= 0) {
-      return res.status(400).json({ error: 'No seats available' });
+    // Check if session is cancelled
+    if (session.is_cancelled) {
+      return res.status(400).json({ error: 'This session has been cancelled' });
     }
 
-    // Start transaction
-    await pool.query('BEGIN');
+    // Check if there are available seats
+    if (session.current_capacity >= session.programs.max_capacity) {
+      return res.status(400).json({ error: 'No seats available for this session' });
+    }
 
-    // Create booking
-    const bookingResult = await pool.query(
-      'INSERT INTO bookings (user_id, program_id, status) VALUES ($1, $2, $3) RETURNING *',
-      [req.user!.id, programId, 'Confirmed']
-    );
+    // Check if user already has a booking for this session
+    const { data: existingBooking, error: bookingCheckError } = await supabase
+      .from('bookings')
+      .select('id')
+      .eq('user_id', authReq.user!.id)
+      .eq('session_id', sessionId)
+      .maybeSingle();
 
-    // Update available seats
-    await pool.query(
-      'UPDATE programs SET seats = seats - 1 WHERE id = $1',
-      [programId]
-    );
+    if (bookingCheckError) throw bookingCheckError;
 
-    await pool.query('COMMIT');
+    if (existingBooking) {
+      return res.status(400).json({ error: 'You already have a booking for this session' });
+    }
 
-    res.status(201).json(bookingResult.rows[0]);
+    // Create the booking
+    const { data: booking, error: bookingError } = await supabase
+      .from('bookings')
+      .insert({
+        user_id: authReq.user!.id,
+        session_id: sessionId,
+        status: 'confirmed',
+        payment_status: paymentStatus,
+        amount_paid: amountPaid
+      })
+      .select()
+      .single();
+
+    if (bookingError) throw bookingError;
+
+    // Update the session capacity
+    const { error: updateError } = await supabase
+      .from('program_sessions')
+      .update({ current_capacity: session.current_capacity + 1 })
+      .eq('id', sessionId);
+
+    if (updateError) throw updateError;
+
+    res.status(201).json(booking);
   } catch (error) {
-    await pool.query('ROLLBACK');
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: error.errors });
     } else {
+      console.error('Error creating booking:', error);
       res.status(500).json({ error: 'Failed to create booking' });
     }
   }
 });
 
 // Cancel booking
-router.put('/:id/cancel', async (req: AuthRequest, res) => {
+router.put('/:id/cancel', async (req, res) => {
   try {
-    const bookingId = parseInt(req.params.id);
+    // Type assertion to AuthRequest
+    const authReq = req as AuthRequest;
 
-    // Start transaction
-    await pool.query('BEGIN');
+    const bookingId = req.params.id;
 
-    // Update booking status
-    const result = await pool.query(
-      'UPDATE bookings SET status = $1 WHERE id = $2 AND user_id = $3 RETURNING program_id',
-      ['Cancelled', bookingId, req.user!.id]
-    );
+    // Get the booking to check if it belongs to the user
+    const { data: booking, error: bookingError } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('id', bookingId)
+      .eq('user_id', authReq.user!.id)
+      .single();
 
-    if (result.rows.length === 0) {
-      await pool.query('ROLLBACK');
-      return res.status(404).json({ error: 'Booking not found' });
+    if (bookingError) {
+      if (bookingError.code === 'PGRST116') {
+        return res.status(404).json({ error: 'Booking not found' });
+      }
+      throw bookingError;
     }
 
-    // Increase available seats
-    await pool.query(
-      'UPDATE programs SET seats = seats + 1 WHERE id = $1',
-      [result.rows[0].program_id]
-    );
+    // Update booking status
+    const { error: updateBookingError } = await supabase
+      .from('bookings')
+      .update({ status: 'cancelled' })
+      .eq('id', bookingId);
 
-    await pool.query('COMMIT');
+    if (updateBookingError) throw updateBookingError;
+
+    // Get the session to update capacity
+    const { data: session, error: sessionError } = await supabase
+      .from('program_sessions')
+      .select('current_capacity')
+      .eq('id', booking.session_id)
+      .single();
+
+    if (sessionError) throw sessionError;
+
+    // Update session capacity
+    const { error: updateSessionError } = await supabase
+      .from('program_sessions')
+      .update({
+        current_capacity: Math.max(0, session.current_capacity - 1)
+      })
+      .eq('id', booking.session_id);
+
+    if (updateSessionError) throw updateSessionError;
 
     res.json({ message: 'Booking cancelled successfully' });
   } catch (error) {
-    await pool.query('ROLLBACK');
+    console.error('Error cancelling booking:', error);
     res.status(500).json({ error: 'Failed to cancel booking' });
   }
 });
