@@ -1,11 +1,12 @@
 {
   "name": "stem-explorer-backend",
   "version": "1.0.0",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "migrate": "node dist/db/migrate.js"
   },
   "dependencies": {
     "@types/cookie-parser": "^1.4.8",
@@ -24,6 +25,7 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.11.3",
+    "stripe": "^14.14.0",
     "uuid": "^11.1.0",
     "zod": "^3.22.4"
   },
