@@ -45,18 +45,50 @@ A comprehensive web platform for STEM education programs, allowing students to b
 3. Set up Supabase:
    - Create a new project at [supabase.com](https://supabase.com)
    - Get your Supabase URL and anon key from the project settings
-   - Run the SQL scripts in the `supabase` directory to set up your database schema
+   - Run the SQL scripts in the `supabase` directory to set up your database schema. See `supabase/README.md` for more details if available.
 
 4. Set up environment variables:
-   Create a `.env.local` file in the root directory with the following variables:
-   ```
-   # Supabase Configuration
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-   # API Configuration (if using the backend server)
-   NEXT_PUBLIC_API_URL=http://localhost:3001/api
-   ```
+   **For the Frontend (Next.js):**
+   - Copy the `.env.local.example` file in the root directory to a new file named `.env.local`.
+   - Update `.env.local` with your actual Supabase project details and other frontend configurations:
+     ```
+     # Supabase Configuration (Frontend - accessible in the browser)
+     NEXT_PUBLIC_SUPABASE_URL="your_supabase_url"
+     NEXT_PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key"
+
+     # API Configuration (if using the backend server)
+     NEXT_PUBLIC_API_URL="http://localhost:3001/api" # Adjust if your backend runs elsewhere
+
+     # Other frontend variables like Stripe public key
+     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="your_stripe_publishable_key"
+     NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+     ```
+   - You can find your Supabase URL and `anon` key in your Supabase project dashboard under Project Settings > API.
+
+   **For the Backend (Express):**
+   - Navigate to the `backend` directory: `cd backend`
+   - Copy the `backend/.env.example` file to a new file named `backend/.env`.
+   - Update `backend/.env` with your actual Supabase project details:
+     ```
+     # Supabase Configuration (Backend - keep these secret)
+     SUPABASE_URL="your_supabase_url"
+     SUPABASE_ANON_KEY="your_supabase_anon_key" # Used by the default backend client
+     SUPABASE_SERVICE_ROLE_KEY="your_supabase_service_role_key" # For admin tasks or bypassing RLS
+     
+     # Supabase Storage Configuration
+     SUPABASE_STORAGE_MATERIALS_BUCKET="course_materials_bucket" # Ensure this bucket exists in your Supabase project Storage
+
+     # Other backend variables (PORT, NODE_ENV, Stripe secrets, etc.)
+     # These might also be in the root .env.example or .env file depending on your setup.
+     # Ensure they are available to the backend environment.
+     # Example:
+     # PORT=3001
+     # STRIPE_SECRET_KEY="your_stripe_secret_key"
+     # STRIPE_WEBHOOK_SECRET="your_stripe_webhook_secret"
+     ```
+   - You can find your Supabase URL, `anon` key, and `service_role` key in your Supabase project dashboard under Project Settings > API.
+   - The `SUPABASE_STORAGE_MATERIALS_BUCKET` should match the name of the bucket you create in Supabase Storage for course materials.
 
 5. Start the development server:
    ```bash

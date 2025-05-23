@@ -1,7 +1,7 @@
 import express from 'express';
 import { z } from 'zod';
 import supabase from '../db/supabase';
-import { AuthRequest } from '../middleware/auth';
+import { AuthRequest, authenticateJWT, requireAdmin } from '../middleware/auth'; // Added authenticateJWT, requireAdmin
 
 const router = express.Router();
 
@@ -79,12 +79,12 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new program (admin only)
-router.post('/', async (req, res) => {
+router.post('/', authenticateJWT, requireAdmin, async (req: AuthRequest, res) => { // Added middleware and typed req
   try {
-    // Type assertion to AuthRequest
-    const authReq = req as AuthRequest;
+    // const authReq = req as AuthRequest; // No longer needed due to middleware typing req as AuthRequest
     const programData = programSchema.parse(req.body);
 
+    // TODO: Potentially add 'created_by: req.user!.id' if schema supports it
     // Insert the program
     const { data, error } = await supabase
       .from('programs')
@@ -118,12 +118,12 @@ router.post('/', async (req, res) => {
 });
 
 // Create new program session
-router.post('/sessions', async (req, res) => {
+router.post('/sessions', authenticateJWT, requireAdmin, async (req: AuthRequest, res) => { // Added middleware and typed req
   try {
-    // Type assertion to AuthRequest
-    const authReq = req as AuthRequest;
+    // const authReq = req as AuthRequest; // No longer needed
     const sessionData = sessionSchema.parse(req.body);
 
+    // TODO: Potentially add 'created_by: req.user!.id' if schema supports it
     // Insert the session
     const { data, error } = await supabase
       .from('program_sessions')

@@ -1,329 +1,64 @@
-import { Atom, BookOpen, Code, Rocket } from "lucide-react"
+import { supabase } from "./supabase"
+import { Atom, BookOpen, Code, Rocket, LucideIcon } from "lucide-react"
+
+// Mapping for icons based on category or title
+const iconMap: { [key: string]: LucideIcon } = {
+  default: Code,
+  robotics: Rocket,
+  coding: Code,
+  science: Atom,
+  math: BookOpen,
+  engineering: Rocket,
+}
+
+const getIcon = (category?: string, title?: string): LucideIcon => {
+  if (category) {
+    const categoryLower = category.toLowerCase()
+    if (iconMap[categoryLower]) {
+      return iconMap[categoryLower]
+    }
+  }
+  if (title) {
+    const titleLower = title.toLowerCase()
+    for (const key in iconMap) {
+      if (titleLower.includes(key)) {
+        return iconMap[key]
+      }
+    }
+  }
+  return iconMap.default
+}
 
 export type Program = {
-  id: number
+  id: string // Changed from number to string to match Supabase UUID
   title: string
   description: string
   category: string
-  level: string
-  duration: string
-  date: string
-  time: string
+  level: string // This field might not be directly available from the 'programs' table
+  duration: string // Will be formatted from integer (minutes) to string (e.g., "2 hours")
+  date: string // This will likely need to come from program_sessions
+  time: string // This will likely need to come from program_sessions
   location?: string
-  instructor?: string
-  seats: number
-  price: string
-  icon: any
-  ageGroup?: string
-  format?: string
-  requirements?: string[]
-  topics?: string[]
-  longDescription?: string
+  instructor?: string // This would need a join with profiles table
+  seats: number // Corresponds to max_capacity
+  price: string // Will be formatted from decimal to string (e.g., "$25")
+  icon: LucideIcon // Changed any to LucideIcon
+  ageGroup?: string // Corresponds to age_range
+  format?: string // This field might not be directly available from the 'programs' table
+  requirements?: string[] // This might be a JSONB field or derived
+  topics?: string[] // This might be a JSONB field or derived
+  longDescription?: string // Assumed to be the same as description for now
 }
 
 export type Booking = {
-  id: number
-  program: string
+  id: string // Changed from number to string to match Supabase UUID
+  program: string // This will be program title
   date: string
   time: string
   location: string
-  status: "Confirmed" | "Pending" | "Cancelled"
-  icon: any
+  status: "Confirmed" | "Pending" | "Cancelled" // This should match the 'status' field in bookings table
+  icon: LucideIcon // Changed any to LucideIcon
 }
-
-// Mock data for programs
-export const programs: Program[] = [
-  {
-    id: 1,
-    title: "Robotics Workshop",
-    description: "Learn to build and program robots with hands-on activities.",
-    longDescription:
-      "In this hands-on workshop, participants will learn the fundamentals of robotics engineering. The program covers mechanical design principles, basic electronics, and programming concepts. Students will work in small teams to design, build, and program their own robots to complete specific challenges. All materials and tools will be provided. No prior experience is necessary, making this perfect for beginners interested in engineering and technology.",
-    category: "Engineering",
-    level: "Beginner",
-    duration: "2 hours",
-    date: "June 15, 2023",
-    time: "10:00 AM - 12:00 PM",
-    location: "STEM Innovation Center, 123 Science Way",
-    instructor: "Dr. Jane Smith",
-    seats: 15,
-    price: "$25",
-    icon: Rocket,
-    ageGroup: "10-14",
-    format: "In-person",
-    requirements: [
-      "No prior experience required",
-      "Suitable for ages 10-14",
-      "All materials provided",
-      "Bring a notebook and pencil",
-    ],
-    topics: [
-      "Introduction to robotics",
-      "Mechanical design basics",
-      "Electronics fundamentals",
-      "Programming with block-based code",
-      "Building a functional robot",
-      "Testing and troubleshooting",
-    ],
-  },
-  {
-    id: 2,
-    title: "Coding Bootcamp",
-    description: "Master programming fundamentals through interactive projects.",
-    category: "Computer Science",
-    level: "Intermediate",
-    duration: "3 hours",
-    date: "June 20, 2023",
-    time: "2:00 PM - 5:00 PM",
-    location: "Tech Hub, Room 101",
-    instructor: "Prof. Alex Johnson",
-    seats: 12,
-    price: "$30",
-    icon: Code,
-    ageGroup: "12-16",
-    format: "Hybrid",
-    requirements: [
-      "Basic computer skills required",
-      "Suitable for ages 12-16",
-      "Laptop required",
-      "Prior exposure to basic concepts helpful",
-    ],
-    topics: [
-      "Programming fundamentals",
-      "Variables and data types",
-      "Control structures",
-      "Functions and methods",
-      "Building a simple game",
-      "Web development basics",
-    ],
-  },
-  {
-    id: 3,
-    title: "Science Exploration",
-    description: "Discover scientific principles through experiments and research.",
-    category: "Science",
-    level: "Beginner",
-    duration: "2 hours",
-    date: "June 25, 2023",
-    time: "1:00 PM - 3:00 PM",
-    location: "Science Center",
-    instructor: "Dr. Maria Garcia",
-    seats: 20,
-    price: "$20",
-    icon: Atom,
-    ageGroup: "8-12",
-    format: "In-person",
-    requirements: [
-      "No prior experience required",
-      "Suitable for ages 8-12",
-      "All materials provided",
-      "Bring a notebook",
-    ],
-    topics: [
-      "Scientific method",
-      "Chemistry basics",
-      "Physics principles",
-      "Biology fundamentals",
-      "Conducting experiments",
-      "Analyzing results",
-    ],
-  },
-  {
-    id: 4,
-    title: "Math Challenge",
-    description: "Enhance problem-solving skills through mathematical challenges.",
-    category: "Mathematics",
-    level: "Advanced",
-    duration: "2 hours",
-    date: "June 30, 2023",
-    time: "3:00 PM - 5:00 PM",
-    location: "Learning Center, Room 203",
-    instructor: "Prof. David Kim",
-    seats: 10,
-    price: "$25",
-    icon: BookOpen,
-    ageGroup: "14-18",
-    format: "Virtual",
-    requirements: [
-      "Strong math foundation required",
-      "Suitable for ages 14-18",
-      "Calculator and notebook required",
-      "Prior experience with algebra recommended",
-    ],
-    topics: [
-      "Advanced problem-solving",
-      "Mathematical reasoning",
-      "Algebra and geometry applications",
-      "Number theory",
-      "Competition math strategies",
-      "Real-world math applications",
-    ],
-  },
-  {
-    id: 5,
-    title: "Electronics Workshop",
-    description: "Build electronic circuits and understand how they work.",
-    category: "Engineering",
-    level: "Intermediate",
-    duration: "3 hours",
-    date: "July 5, 2023",
-    time: "10:00 AM - 1:00 PM",
-    location: "Maker Space, 456 Tech Avenue",
-    instructor: "Eng. Sarah Williams",
-    seats: 8,
-    price: "$35",
-    icon: Rocket,
-    ageGroup: "12-16",
-    format: "In-person",
-    requirements: [
-      "Basic understanding of electricity recommended",
-      "Suitable for ages 12-16",
-      "All materials provided",
-      "Safety goggles required (provided)",
-    ],
-    topics: [
-      "Circuit design basics",
-      "Components and their functions",
-      "Reading schematics",
-      "Soldering techniques",
-      "Building a working electronic device",
-      "Troubleshooting circuits",
-    ],
-  },
-  {
-    id: 6,
-    title: "Python for Data Science",
-    description: "Learn Python programming for data analysis and visualization.",
-    category: "Computer Science",
-    level: "Advanced",
-    duration: "4 hours",
-    date: "July 10, 2023",
-    time: "1:00 PM - 5:00 PM",
-    location: "Virtual Classroom",
-    instructor: "Dr. James Wilson",
-    seats: 15,
-    price: "$40",
-    icon: Code,
-    ageGroup: "15-18",
-    format: "Virtual",
-    requirements: [
-      "Basic programming knowledge required",
-      "Suitable for ages 15-18",
-      "Computer with Python installed required",
-      "Understanding of basic math concepts",
-    ],
-    topics: [
-      "Python fundamentals",
-      "Data structures and algorithms",
-      "Working with libraries (NumPy, Pandas)",
-      "Data visualization with Matplotlib",
-      "Basic statistical analysis",
-      "Building a data science project",
-    ],
-  },
-  {
-    id: 7,
-    title: "Chemistry Lab",
-    description: "Conduct exciting chemistry experiments in a lab setting.",
-    category: "Science",
-    level: "Intermediate",
-    duration: "2.5 hours",
-    date: "July 15, 2023",
-    time: "9:30 AM - 12:00 PM",
-    location: "Science Center, Lab 3",
-    instructor: "Prof. Emily Chen",
-    seats: 12,
-    price: "$30",
-    icon: Atom,
-    ageGroup: "12-16",
-    format: "In-person",
-    requirements: [
-      "Basic science knowledge recommended",
-      "Suitable for ages 12-16",
-      "All lab materials provided",
-      "Closed-toe shoes required",
-    ],
-    topics: [
-      "Lab safety procedures",
-      "Chemical reactions",
-      "Acids and bases",
-      "Solutions and mixtures",
-      "Molecular structures",
-      "Experimental design",
-    ],
-  },
-  {
-    id: 8,
-    title: "Aerospace Engineering",
-    description: "Explore principles of flight and spacecraft design.",
-    category: "Engineering",
-    level: "Advanced",
-    duration: "3 hours",
-    date: "July 20, 2023",
-    time: "2:00 PM - 5:00 PM",
-    location: "Aerospace Center, 789 Flight Way",
-    instructor: "Eng. Robert Taylor",
-    seats: 10,
-    price: "$45",
-    icon: Rocket,
-    ageGroup: "14-18",
-    format: "In-person",
-    requirements: [
-      "Physics knowledge recommended",
-      "Suitable for ages 14-18",
-      "All materials provided",
-      "Calculator required",
-    ],
-    topics: [
-      "Principles of flight",
-      "Aerodynamics",
-      "Rocket propulsion",
-      "Spacecraft design",
-      "Building and testing model aircraft",
-      "Future of aerospace technology",
-    ],
-  },
-]
-
-// Mock data for bookings
-export const bookings: Booking[] = [
-  {
-    id: 1,
-    program: "Robotics Workshop",
-    date: "June 15, 2023",
-    time: "10:00 AM - 12:00 PM",
-    location: "STEM Innovation Center",
-    status: "Confirmed",
-    icon: Rocket,
-  },
-  {
-    id: 2,
-    program: "Coding Bootcamp",
-    date: "June 20, 2023",
-    time: "2:00 PM - 5:00 PM",
-    location: "Tech Hub, Room 101",
-    status: "Pending",
-    icon: Code,
-  },
-  {
-    id: 3,
-    program: "Science Exploration",
-    date: "June 25, 2023",
-    time: "1:00 PM - 3:00 PM",
-    location: "Science Center",
-    status: "Confirmed",
-    icon: Atom,
-  },
-  {
-    id: 4,
-    program: "Math Challenge",
-    date: "June 30, 2023",
-    time: "3:00 PM - 5:00 PM",
-    location: "Learning Center, Room 203",
-    status: "Cancelled",
-    icon: BookOpen,
-  },
-]
 
 // Filter programs based on search and filter criteria
 export type FilterOptions = {
@@ -336,45 +71,268 @@ export type FilterOptions = {
   priceRange?: string
 }
 
-export async function getFilteredPrograms(options: FilterOptions): Promise<Program[]> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 500))
+// Extended Program type to include sessions
+export type ProgramWithSessions = Program & {
+  sessions: ProgramSession[]
+  instructorName?: string // Added instructor name
+}
 
-  let filtered = [...programs]
+export type ProgramSession = {
+  id: string
+  startTime: string
+  endTime: string
+  currentCapacity: number
+  isCancelled: boolean
+}
+
+export async function getFilteredPrograms(options: FilterOptions): Promise<Program[]> {
+  let query = supabase.from("programs").select(`
+    id,
+    title,
+    description,
+    category,
+    age_range,
+    price,
+    duration,
+    max_capacity,
+    location,
+    image_url
+    // instructor_id (Need to join with profiles to get instructor name for the list view if required)
+    // level and format are not direct columns in 'programs' table.
+    // date and time for a program list might be the earliest upcoming session or a general schedule
+  `)
 
   // Apply search filter
   if (options.search) {
-    const searchLower = options.search.toLowerCase()
-    filtered = filtered.filter(
-      (program) =>
-        program.title.toLowerCase().includes(searchLower) || program.description.toLowerCase().includes(searchLower),
-    )
+    const searchLower = `%${options.search.toLowerCase()}%`
+    query = query.or(`title.ilike.${searchLower},description.ilike.${searchLower}`)
   }
 
   // Apply category filter
   if (options.category && options.category !== "all") {
-    filtered = filtered.filter((program) => program.category.toLowerCase() === options.category?.toLowerCase())
-  }
-
-  // Apply level filter
-  if (options.level && options.level !== "all") {
-    filtered = filtered.filter((program) => program.level.toLowerCase() === options.level?.toLowerCase())
+    query = query.eq("category", options.category)
   }
 
   // Apply age group filter
   if (options.ageGroup && options.ageGroup !== "all") {
-    filtered = filtered.filter((program) => program.ageGroup?.includes(options.ageGroup || ""))
+    query = query.eq("age_range", options.ageGroup)
   }
 
-  // Apply format filter
+  // Apply level filter - Not directly available in 'programs' table. Ignoring for now.
+  if (options.level && options.level !== "all") {
+    // console.warn("Filtering by 'level' is not yet implemented for Supabase.")
+  }
+
+  // Apply format filter - Not directly available in 'programs' table. Ignoring for now.
   if (options.format && options.format !== "all") {
-    filtered = filtered.filter((program) => program.format?.toLowerCase() === options.format?.toLowerCase())
+    // console.warn("Filtering by 'format' is not yet implemented for Supabase.")
   }
 
-  return filtered
+  const { data, error } = await query
+
+  if (error) {
+    console.error("Error fetching programs:", error)
+    throw error
+  }
+
+  // Map Supabase data to Program type
+  return data
+    ? data.map((program) => {
+        let durationStr = ""
+        if (program.duration) {
+          if (program.duration >= 60) {
+            const hours = Math.floor(program.duration / 60)
+            const minutes = program.duration % 60
+            durationStr = `${hours} hour${hours > 1 ? "s" : ""}${minutes > 0 ? ` ${minutes} minutes` : ""}`
+          } else {
+            durationStr = `${program.duration} minutes`
+          }
+        }
+
+        return {
+          id: program.id,
+          title: program.title,
+          description: program.description,
+          longDescription: program.description,
+          category: program.category,
+          level: "N/A", // Placeholder
+          duration: durationStr,
+          date: "TBD", // Placeholder - determined by sessions for individual program view
+          time: "TBD", // Placeholder - determined by sessions for individual program view
+          location: program.location,
+          seats: program.max_capacity,
+          price: program.price ? `$${program.price}` : "N/A",
+          icon: getIcon(program.category, program.title),
+          ageGroup: program.age_range,
+          format: "N/A", // Placeholder
+          requirements: [], // Placeholder
+          topics: [], // Placeholder
+        }
+      })
+    : []
 }
 
-// Get bookings with filtering
+// Get a single program by ID, including its sessions and instructor details
+export async function getProgramById(id: string): Promise<ProgramWithSessions | undefined> {
+  const { data, error } = await supabase
+    .from("programs")
+    .select(
+      `
+      *, 
+      instructor:profiles (first_name, last_name),
+      program_sessions (*)
+    `
+    )
+    .eq("id", id)
+    .single()
+
+  if (error) {
+    console.error(`Error fetching program with id ${id}:`, error)
+    return undefined
+  }
+
+  if (!data) {
+    return undefined
+  }
+
+  let durationStr = ""
+  if (data.duration) {
+    if (data.duration >= 60) {
+      const hours = Math.floor(data.duration / 60)
+      const minutes = data.duration % 60
+      durationStr = `${hours} hour${hours > 1 ? "s" : ""}${minutes > 0 ? ` ${minutes} minutes` : ""}`
+    } else {
+      durationStr = `${data.duration} minutes`
+    }
+  }
+
+  // Assuming 'date' and 'time' for the Program type should represent the first session's details
+  // This might need adjustment based on specific UI requirements.
+  let programDate = "TBD"
+  let programTime = "TBD"
+  if (data.program_sessions && data.program_sessions.length > 0) {
+    const firstSession = data.program_sessions.sort(
+      (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+    )[0]
+    if (firstSession) {
+      const startTime = new Date(firstSession.start_time)
+      programDate = startTime.toLocaleDateString()
+      programTime = startTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    }
+  }
+  
+  const instructorName = data.instructor ? `${data.instructor.first_name} ${data.instructor.last_name}`.trim() : "N/A";
+
+
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    longDescription: data.description, // Potentially map to a different field if available
+    category: data.category,
+    level: "N/A", // Placeholder - consider adding 'level' to programs table
+    duration: durationStr,
+    date: programDate,
+    time: programTime,
+    location: data.location,
+    seats: data.max_capacity,
+    price: data.price ? `$${data.price}` : "N/A",
+    icon: getIcon(data.category, data.title),
+    ageGroup: data.age_range,
+    format: "N/A", // Placeholder - consider adding 'format' to programs table
+    requirements: [], // Placeholder - consider adding 'requirements' (e.g., JSONB) to programs table
+    topics: [], // Placeholder - consider adding 'topics' (e.g., JSONB) to programs table
+    instructor: instructorName, // Mapped instructor name
+    instructorName: instructorName, // Added for ProgramWithSessions
+    sessions: data.program_sessions
+      ? data.program_sessions.map((session: any) => ({
+          id: session.id,
+          startTime: new Date(session.start_time).toLocaleString(),
+          endTime: new Date(session.end_time).toLocaleString(),
+          currentCapacity: session.current_capacity,
+          isCancelled: session.is_cancelled,
+        }))
+      : [],
+  }
+}
+
+
+// Type for User Bookings, extending the base Booking to include program and session details
+export type UserBooking = Booking & {
+  programTitle: string
+  programCategory: string
+  sessionStartTime: string
+  sessionEndTime: string
+  // Add other fields from program or session as needed
+}
+
+// Get bookings for a specific user, joining with program and session details
+export async function getUserBookings(userId: string): Promise<UserBooking[]> {
+  if (!userId) {
+    console.warn("User ID not provided for getUserBookings")
+    return []
+  }
+
+  const { data, error } = await supabase
+    .from("bookings")
+    .select(
+      `
+      id,
+      status,
+      payment_status,
+      amount_paid,
+      booking_date,
+      session:program_sessions (
+        start_time,
+        end_time,
+        program:programs (
+          title,
+          category,
+          location,
+          image_url
+        )
+      )
+    `
+    )
+    .eq("user_id", userId)
+
+  if (error) {
+    console.error(`Error fetching bookings for user ${userId}:`, error)
+    throw error
+  }
+
+  return data
+    ? data.map((booking: any) => {
+        const program = booking.session?.program
+        const session = booking.session
+        
+        let bookingStatus: "Confirmed" | "Pending" | "Cancelled" = "Pending" // Default
+        if (booking.status === 'confirmed') bookingStatus = "Confirmed"
+        if (booking.status === 'cancelled') bookingStatus = "Cancelled"
+
+        return {
+          id: booking.id,
+          program: program?.title || "N/A", // Fallback if program title is not found
+          date: session ? new Date(session.start_time).toLocaleDateString() : "TBD",
+          time: session ? new Date(session.start_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "TBD",
+          location: program?.location || "N/A",
+          status: bookingStatus,
+          icon: getIcon(program?.category, program?.title), // Get icon based on program category/title
+          // UserBooking specific fields
+          programTitle: program?.title || "N/A",
+          programCategory: program?.category || "N/A",
+          sessionStartTime: session ? new Date(session.start_time).toLocaleString() : "TBD",
+          sessionEndTime: session ? new Date(session.end_time).toLocaleString() : "TBD",
+          // payment_status: booking.payment_status, // uncomment if needed in Booking type
+          // amount_paid: booking.amount_paid, // uncomment if needed in Booking type
+          // booking_date: new Date(booking.booking_date).toLocaleString(), // uncomment if needed
+        }
+      })
+    : []
+}
+
+
+// Get bookings with filtering (Placeholder - needs to be refactored for Supabase)
 export type BookingFilterOptions = {
   search?: string
   status?: string
@@ -382,45 +340,10 @@ export type BookingFilterOptions = {
 }
 
 export async function getFilteredBookings(options: BookingFilterOptions): Promise<Booking[]> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 500))
-
-  let filtered = [...bookings]
-
-  // Apply search filter
-  if (options.search) {
-    const searchLower = options.search.toLowerCase()
-    filtered = filtered.filter(
-      (booking) =>
-        booking.program.toLowerCase().includes(searchLower) || booking.location.toLowerCase().includes(searchLower),
-    )
-  }
-
-  // Apply status filter
-  if (options.status && options.status !== "all") {
-    filtered = filtered.filter((booking) => booking.status.toLowerCase() === options.status?.toLowerCase())
-  }
-
-  // Apply date range filter
-  if (options.dateRange && options.dateRange !== "all") {
-    // This would be more sophisticated in a real app
-    if (options.dateRange === "upcoming") {
-      // Filter for future dates
-      filtered = filtered.filter((booking) => new Date(booking.date) > new Date())
-    } else if (options.dateRange === "past") {
-      // Filter for past dates
-      filtered = filtered.filter((booking) => new Date(booking.date) < new Date())
-    }
-  }
-
-  return filtered
-}
-
-// Get a single program by ID
-export async function getProgramById(id: number): Promise<Program | undefined> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300))
-
-  return programs.find((program) => program.id === id)
+  // This function needs a complete refactor to fetch from Supabase bookings table
+  // and apply filters similar to getFilteredPrograms.
+  // For now, it returns an empty array as mock data is removed.
+  console.warn("getFilteredBookings is not yet refactored for Supabase and will return empty.")
+  return []
 }
 
