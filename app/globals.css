@@ -15,13 +15,14 @@
     /* Colorful buttons - kid-friendly but with good contrast */
     --primary: 210 100% 50%; /* Bright blue (#0078FF) */
     --primary-foreground: 0 0% 100%; /* White text on primary (#FFFFFF) */
-
-    --secondary: 130 100% 40%; /* Bright green (#00B300) */
+    
+    /* Secondary button - Bright green */
+    --secondary: 130 100% 35%; /* Bright green (#00B300) */
     --secondary-foreground: 0 0% 100%; /* White text on secondary (#FFFFFF) */
 
     /* Light gray for backgrounds */
-    --muted: 0 0% 96%; /* Very light gray background (#F5F5F5) */
-    --muted-foreground: 0 0% 0%; /* Black text on muted backgrounds (#000000) */
+    --muted: 210 100% 97%; /* Very light blue background (#F0F8FF) */
+    --muted-foreground: 0 0% 45%; /* Gray text on muted backgrounds (#737373) */
 
     /* Accent colors */
     --accent: 45 100% 50%; /* Bright yellow (#FFC800) */

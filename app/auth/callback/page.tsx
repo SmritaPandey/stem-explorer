@@ -7,7 +7,7 @@
  * It processes the authentication result and creates a user profile if needed.
  */
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import supabase from "@/lib/supabase";
@@ -22,6 +22,14 @@ import supabase from "@/lib/supabase";
  * 4. Redirects to the dashboard or login page based on authentication result
  */
 export default function AuthCallbackPage() {
+  return (
+    <Suspense>
+      <AuthCallbackPageContent />
+    </Suspense>
+  );
+}
+
+function AuthCallbackPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const error = searchParams.get("error");

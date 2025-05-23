@@ -136,14 +136,13 @@ export default function AchievementsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-black">Achievements</h1>
+        <h1 className="text-[2.5rem] font-bold text-black">Achievements</h1>
         <p className="text-black">Track your progress and earn badges on your STEM journey!</p>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="stem-card col-span-1 md:col-span-3">
+        <Card className="stem-card col-span-1 md:col-span-3 bg-white border-2 border-[#D6EBFF] rounded-[0.625rem] p-4 shadow-sm">
           <CardHeader>
             <CardTitle className="text-black">Achievement Progress</CardTitle>
             <CardDescription className="text-black">You've earned {earnedAchievements.length} out of {achievements.length} achievements</CardDescription>
@@ -152,25 +151,25 @@ export default function AchievementsPage() {
             <div className="space-y-4">
               <Progress value={(earnedAchievements.length / achievements.length) * 100} className="h-2" />
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="stem-card p-4 text-center">
-                  <Trophy className="h-8 w-8 text-[#0078FF] mx-auto mb-2" />
+                <div className="stem-card p-4 text-center bg-white border-2 border-[#D6EBFF] rounded-[0.625rem] shadow-sm">
+                  <Trophy className="h-8 w-8 text-[#0078FF] mx-auto mb-2 floating" />
                   <p className="text-2xl font-bold text-black">{earnedAchievements.length}</p>
                   <p className="text-black">Earned</p>
                 </div>
-                <div className="stem-card p-4 text-center">
-                  <Medal className="h-8 w-8 text-[#00B300] mx-auto mb-2" />
+                <div className="stem-card p-4 text-center bg-white border-2 border-[#D6EBFF] rounded-[0.625rem] shadow-sm">
+                  <Medal className="h-8 w-8 text-[#00B300] mx-auto mb-2 floating" />
                   <p className="text-2xl font-bold text-black">{inProgressAchievements.length}</p>
                   <p className="text-black">In Progress</p>
                 </div>
-                <div className="stem-card p-4 text-center">
-                  <Award className="h-8 w-8 text-[#7B00FF] mx-auto mb-2" />
+                <div className="stem-card p-4 text-center bg-white border-2 border-[#D6EBFF] rounded-[0.625rem] shadow-sm">
+                  <Award className="h-8 w-8 text-[#7B00FF] mx-auto mb-2 floating" />
                   <p className="text-2xl font-bold text-black">
                     {achievements.filter(a => a.difficulty === "advanced" && a.earned).length}
                   </p>
                   <p className="text-black">Advanced</p>
                 </div>
-                <div className="stem-card p-4 text-center">
-                  <Sparkles className="h-8 w-8 text-[#FFC800] mx-auto mb-2" />
+                <div className="stem-card p-4 text-center bg-white border-2 border-[#D6EBFF] rounded-[0.625rem] shadow-sm">
+                  <Sparkles className="h-8 w-8 text-[#FFC800] mx-auto mb-2 floating" />
                   <p className="text-2xl font-bold text-black">
                     {Math.round((earnedAchievements.length / achievements.length) * 100)}%
                   </p>
@@ -181,18 +180,16 @@ export default function AchievementsPage() {
           </CardContent>
         </Card>
       </div>
-
       <Tabs defaultValue="earned" className="space-y-4">
         <TabsList>
           <TabsTrigger value="earned">Earned Achievements</TabsTrigger>
           <TabsTrigger value="in-progress">In Progress</TabsTrigger>
           <TabsTrigger value="all">All Achievements</TabsTrigger>
         </TabsList>
-        
         <TabsContent value="earned" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {earnedAchievements.map((achievement) => (
-              <Card key={achievement.id} className="stem-card overflow-hidden">
+              <Card key={achievement.id} className="stem-card overflow-hidden bg-white border-2 border-[#D6EBFF] rounded-[0.625rem] p-4 shadow-sm hover:shadow-md transition-all group">
                 <div className={`p-4 flex justify-between items-center ${
                   achievement.category === "robotics" ? "bg-[#F0F8FF]" :
                   achievement.category === "coding" ? "bg-[#F0FFF0]" :
@@ -206,7 +203,7 @@ export default function AchievementsPage() {
                 </div>
                 <CardHeader>
                   <div className="flex justify-between items-center">
-                    <CardTitle className="text-black">{achievement.title}</CardTitle>
+                    <CardTitle className="text-black text-[1.5rem] font-bold">{achievement.title}</CardTitle>
                     {getDifficultyStars(achievement.difficulty)}
                   </div>
                   <CardDescription className="text-black">{achievement.description}</CardDescription>
@@ -223,31 +220,30 @@ export default function AchievementsPage() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button variant="outline" className="w-full">Share Achievement</Button>
+                  <Button variant="outline" className="w-full rounded-[0.625rem] border-2 border-[#0078FF] text-[#0078FF] bg-white hover:bg-[#F0F8FF] hover:shadow-md transition-all">Share Achievement</Button>
                 </CardFooter>
               </Card>
             ))}
           </div>
         </TabsContent>
-        
         <TabsContent value="in-progress" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {inProgressAchievements.map((achievement) => (
-              <Card key={achievement.id} className="stem-card overflow-hidden">
+              <Card key={achievement.id} className="stem-card overflow-hidden bg-white border-2 border-[#D6EBFF] rounded-[0.625rem] p-4 shadow-sm hover:shadow-md transition-all group">
                 <div className={`p-4 flex justify-between items-center ${
                   achievement.category === "robotics" ? "bg-[#F0F8FF]" :
                   achievement.category === "coding" ? "bg-[#F0FFF0]" :
                   achievement.category === "science" ? "bg-[#F8F0FF]" :
                   "bg-[#FFFCF0]"
                 }`}>
-                  <div>
+                  <div className="floating">
                     {achievement.icon}
                   </div>
                   <div className="text-4xl">{getCategoryEmoji(achievement.category)}</div>
                 </div>
                 <CardHeader>
                   <div className="flex justify-between items-center">
-                    <CardTitle className="text-black">{achievement.title}</CardTitle>
+                    <CardTitle className="text-black text-[1.5rem] font-bold">{achievement.title}</CardTitle>
                     {getDifficultyStars(achievement.difficulty)}
                   </div>
                   <CardDescription className="text-black">{achievement.description}</CardDescription>
@@ -262,17 +258,16 @@ export default function AchievementsPage() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full">View Requirements</Button>
+                  <Button className="w-full rounded-[0.625rem] bg-[#00B300] text-white hover:bg-[#008f26] hover:shadow-md transition-all">View Requirements</Button>
                 </CardFooter>
               </Card>
             ))}
           </div>
         </TabsContent>
-        
         <TabsContent value="all" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {achievements.map((achievement) => (
-              <Card key={achievement.id} className="stem-card overflow-hidden">
+              <Card key={achievement.id} className="stem-card overflow-hidden bg-white border-2 border-[#D6EBFF] rounded-[0.625rem] p-4 shadow-sm hover:shadow-md transition-all group">
                 <div className={`p-4 flex justify-between items-center ${
                   achievement.category === "robotics" ? "bg-[#F0F8FF]" :
                   achievement.category === "coding" ? "bg-[#F0FFF0]" :
@@ -286,7 +281,7 @@ export default function AchievementsPage() {
                 </div>
                 <CardHeader>
                   <div className="flex justify-between items-center">
-                    <CardTitle className="text-black">{achievement.title}</CardTitle>
+                    <CardTitle className="text-black text-[1.5rem] font-bold">{achievement.title}</CardTitle>
                     {getDifficultyStars(achievement.difficulty)}
                   </div>
                   <CardDescription className="text-black">{achievement.description}</CardDescription>
@@ -315,7 +310,7 @@ export default function AchievementsPage() {
                 <CardFooter>
                   <Button 
                     variant={achievement.earned ? "outline" : "default"}
-                    className="w-full"
+                    className={achievement.earned ? "w-full rounded-[0.625rem] border-2 border-[#0078FF] text-[#0078FF] bg-white hover:bg-[#F0F8FF] hover:shadow-md transition-all" : "w-full rounded-[0.625rem] bg-[#00B300] text-white hover:bg-[#008f26] hover:shadow-md transition-all"}
                   >
                     {achievement.earned ? "Share Achievement" : "View Requirements"}
                   </Button>

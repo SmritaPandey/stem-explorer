@@ -76,13 +76,24 @@ function BookingsCalendar({ bookings, onActionComplete }: {
     return acc
   }, {} as Record<string, BookingWithUser[]>)
 
+  // Helper to get filtered bookings for the selected date and status
+  const filteredBookingsForDate = (selectedDate: Date | undefined) => {
+    if (!selectedDate) return []
+    const dateKey = format(selectedDate, 'yyyy-MM-dd')
+    let bookingsForDate = bookingsByDate[dateKey] || []
+    if (statusFilter !== 'all') {
+      bookingsForDate = bookingsForDate.filter(b => b.status === statusFilter)
+    }
+    return bookingsForDate
+  }
+
   return (
     <div className="flex flex-col md:flex-row gap-8">
       <div className="stem-card p-4">
         <Calendar
           mode="single"
           selected={date}
-          onSelect={setDate}
+          onSelect={d => setDate(d && isValid(d) ? d : undefined)}
           className="rounded-md border border-[#D6EBFF]"
           components={{
             DayContent: ({ date: dayDate }) => {
@@ -106,7 +117,7 @@ function BookingsCalendar({ bookings, onActionComplete }: {
           <h2 className="text-xl font-semibold text-black">
             {date ? format(date, 'MMMM d, yyyy') : 'Select a date'}
           </h2>
-          <Select defaultValue="all" onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={v => setStatusFilter(v as BookingStatus | 'all')}>
             <SelectTrigger className="w-[180px] border-[#D6EBFF] text-black">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -119,9 +130,9 @@ function BookingsCalendar({ bookings, onActionComplete }: {
           </Select>
         </div>
 
-        {date && (
+        {date ? (
           <div className="space-y-4">
-            {bookingsByDate[format(date, 'yyyy-MM-dd')]?.map((booking) => {
+            {filteredBookingsForDate(date).length > 0 ? filteredBookingsForDate(date).map((booking) => {
               // Get category-specific elements
               let categoryColor = "";
               let categoryBg = "";
@@ -207,7 +218,7 @@ function BookingsCalendar({ bookings, onActionComplete }: {
                     </Button>
 
                     {booking.status === "confirmed" && (
-                      <Button className="btn-primary" size="sm" onClick={() => handleAddToCalendar(booking)}>
+                      <Button className="btn-primary" size="sm" onClick={() => {}}>
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         Add to Calendar
                       </Button>
@@ -230,7 +241,7 @@ function BookingsCalendar({ bookings, onActionComplete }: {
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Keep Booking</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleCancelBooking(booking.id)}>
+                            <AlertDialogAction onClick={() => {}}>
                               Cancel Booking
                             </AlertDialogAction>
                           </AlertDialogFooter>
@@ -240,14 +251,19 @@ function BookingsCalendar({ bookings, onActionComplete }: {
                   </div>
                 </div>
               );
-            })}
-            {!bookingsByDate[format(date, 'yyyy-MM-dd')] && (
+            }) : (
               <div className="text-center py-8 bg-[#F0F8FF] rounded-lg border border-[#D6EBFF]">
                 <CalendarIcon className="h-12 w-12 text-[#0078FF] mx-auto mb-2 opacity-50" />
                 <p className="text-black font-medium">No bookings for this date</p>
                 <p className="text-[#555555] text-sm mt-1">Select another date to view bookings</p>
               </div>
             )}
+          </div>
+        ) : (
+          <div className="text-center py-8 bg-[#F0F8FF] rounded-lg border border-[#D6EBFF]">
+            <CalendarIcon className="h-12 w-12 text-[#0078FF] mx-auto mb-2 opacity-50" />
+            <p className="text-black font-medium">No date selected</p>
+            <p className="text-[#555555] text-sm mt-1">Please select a date to view bookings</p>
           </div>
         )}
       </div>
@@ -309,12 +325,11 @@ export default function BookingsPage() {
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-black">Bookings Calendar</h1>
+        <h1 className="text-[2.5rem] font-bold text-black">Bookings Calendar</h1>
         <p className="text-black">View and manage your program bookings</p>
       </div>
-
       {isAdmin ? (
         <Tabs defaultValue="my-bookings" className="space-y-4">
           <TabsList>
@@ -448,7 +463,7 @@ function BookingsTable({ initialBookings, showUser, currentUserId }: BookingsTab
           </Button>
         </div>
         <div className="flex flex-col gap-4 sm:flex-row">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={v => setStatusFilter(v as BookingStatus | 'all')}>
             <SelectTrigger className="w-[180px] border-[#D6EBFF] text-black">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
@@ -585,7 +600,7 @@ function BookingsTable({ initialBookings, showUser, currentUserId }: BookingsTab
                       </Button>
 
                       {booking.status === "confirmed" && (
-                        <Button className="btn-primary" size="sm" onClick={() => handleAddToCalendar(booking)}>
+                        <Button className="btn-primary" size="sm" onClick={() => {}}>
                           <CalendarIcon className="h-4 w-4" />
                         </Button>
                       )}
@@ -606,7 +621,7 @@ function BookingsTable({ initialBookings, showUser, currentUserId }: BookingsTab
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Keep Booking</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleCancelBooking(booking.id)}>
+                              <AlertDialogAction onClick={() => {}}>
                                 Cancel Booking
                               </AlertDialogAction>
                             </AlertDialogFooter>

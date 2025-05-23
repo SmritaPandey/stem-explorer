@@ -67,17 +67,17 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-black">Profile</h1>
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="stem-card">
+    <div className="space-y-8">
+      <h1 className="text-[2.5rem] font-bold text-black">Profile</h1>
+      <div className="grid gap-8 md:grid-cols-2">
+        <Card className="stem-card bg-white border-2 border-[#D6EBFF] rounded-[0.625rem] p-6 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-black">Personal Information</CardTitle>
+            <CardTitle className="text-black text-[2rem] font-bold">Personal Information</CardTitle>
             <CardDescription className="text-black">Update your personal details here</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex items-center space-x-4">
+          <CardContent className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="flex items-center space-x-6">
                 <Avatar className="h-20 w-20 border-2 border-[#D6EBFF]">
                   <AvatarImage src={profile.avatar} />
                   <AvatarFallback className="bg-[#0078FF] text-white">
@@ -92,12 +92,12 @@ export default function ProfilePage() {
                     accept="image/*"
                     onChange={handlePhotoChange}
                   />
-                  <Button type="button" className="btn-outline" onClick={() => document.getElementById('photo')?.click()}>
+                  <Button type="button" variant="outline" onClick={() => document.getElementById('photo')?.click()}>
                     Change Photo
                   </Button>
                 </div>
               </div>
-              <div className="grid gap-4">
+              <div className="grid gap-6">
                 <div className="grid gap-2">
                   <Label htmlFor="name" className="text-black">Full Name</Label>
                   <div className="flex">
@@ -106,7 +106,7 @@ export default function ProfilePage() {
                       id="name"
                       value={profile.name}
                       onChange={handleInputChange}
-                      className="pl-10 border-[#D6EBFF] text-black"
+                      className="pl-10 border-[#D6EBFF] text-black bg-white"
                     />
                   </div>
                 </div>
@@ -119,7 +119,7 @@ export default function ProfilePage() {
                       type="email"
                       value={profile.email}
                       onChange={handleInputChange}
-                      className="pl-10 border-[#D6EBFF] text-black"
+                      className="pl-10 border-[#D6EBFF] text-black bg-white"
                     />
                   </div>
                 </div>
@@ -131,11 +131,11 @@ export default function ProfilePage() {
                       id="phone"
                       value={profile.phone}
                       onChange={handleInputChange}
-                      className="pl-10 border-[#D6EBFF] text-black"
+                      className="pl-10 border-[#D6EBFF] text-black bg-white"
                     />
                   </div>
                 </div>
-                <Button type="submit" disabled={loading} className="btn-primary">
+                <Button type="submit" disabled={loading} variant="default">
                   {loading ? "Saving..." : "Save Changes"}
                 </Button>
               </div>

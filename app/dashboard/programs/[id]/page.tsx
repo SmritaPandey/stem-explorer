@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import {
   ArrowLeft, Calendar, Clock, CreditCard, MapPin, Rocket,
-  Users, CheckCircle, Sparkles, Star, Beaker, Brain, Puzzle, Lightbulb
+  Users, CheckCircle, Sparkles, Star, Beaker, Brain, Puzzle, Lightbulb, Loader2
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 
@@ -179,92 +179,87 @@ export default function ProgramDetailsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl border-2 border-blue-200">
+      <div className="bg-white p-6 rounded-[0.625rem] border-2 border-[#D6EBFF]">
         <div className="flex items-center gap-4 mb-2">
-          <Button variant="outline" size="icon" className="rounded-full border-2 border-blue-300" asChild>
+          <Button variant="outline" size="icon" className="rounded-full border-2 border-[#D6EBFF] text-[#0078FF]" asChild>
             <Link href="/dashboard/programs">
-              <ArrowLeft className="h-5 w-5 text-blue-600" />
+              <ArrowLeft className="h-5 w-5" />
               <span className="sr-only">Back</span>
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            {program.title}
-          </h1>
+          <h1 className="text-[2.5rem] font-bold text-black">{program.title}</h1>
         </div>
-        <p className="text-foreground text-lg ml-14">Join this exciting adventure and learn amazing things! 🚀</p>
+        <p className="text-black text-lg ml-14">Join this exciting adventure and learn amazing things! 🚀</p>
       </div>
 
       <div className="grid gap-8 md:grid-cols-3">
         <div className="md:col-span-2 space-y-8">
-          <Card className="border-2 border-blue-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2"></div>
+          <Card className="stem-card bg-white border-2 border-[#D6EBFF] overflow-hidden">
+            <div className="bg-[#D6EBFF] h-2"></div>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-blue-100 p-3">
-                  <ProgramIcon className="h-6 w-6 text-blue-600" />
+                <div className="rounded-full bg-[#F0F8FF] p-3">
+                  <ProgramIcon className="h-6 w-6 text-[#0078FF] wiggling" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">About This Adventure</CardTitle>
-                  <CardDescription>What you'll do and learn</CardDescription>
+                  <CardTitle className="text-black text-[1.5rem] font-bold">About This Adventure</CardTitle>
+                  <CardDescription className="text-black">What you'll do and learn</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <p className="text-foreground text-lg">{program.longDescription}</p>
-
-              <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
+              <p className="text-black text-lg">{program.longDescription}</p>
+              <div className="bg-[#F0F8FF] p-5 rounded-xl border border-[#D6EBFF]">
                 <div className="flex items-center gap-2 mb-3">
-                  <Star className="h-5 w-5 text-yellow-500" />
-                  <h3 className="font-bold text-lg text-blue-700">Cool Things You'll Learn</h3>
+                  <Star className="h-5 w-5 text-[#00B300]" />
+                  <h3 className="font-bold text-lg text-[#0078FF]">Cool Things You'll Learn</h3>
                 </div>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {program.topics.map((topic, index) => (
                     <li key={index} className="flex items-center gap-2">
                       <div className="bg-white p-1 rounded-full">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <CheckCircle className="h-4 w-4 text-[#00B300]" />
                       </div>
-                      <span className="text-foreground">{topic}</span>
+                      <span className="text-black">{topic}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-
-              <div className="bg-purple-50 p-5 rounded-xl border border-purple-100">
+              <div className="bg-[#F8F0FF] p-5 rounded-xl border border-[#D6EBFF]">
                 <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="h-5 w-5 text-purple-500" />
-                  <h3 className="font-bold text-lg text-purple-700">What You Need to Know</h3>
+                  <Sparkles className="h-5 w-5 text-[#7B00FF]" />
+                  <h3 className="font-bold text-lg text-[#7B00FF]">What You Need to Know</h3>
                 </div>
                 <ul className="space-y-2">
                   {program.requirements.map((req, index) => (
                     <li key={index} className="flex items-center gap-2">
                       <div className="bg-white p-1 rounded-full">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <CheckCircle className="h-4 w-4 text-[#00B300]" />
                       </div>
-                      <span className="text-foreground">{req}</span>
+                      <span className="text-black">{req}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             </CardContent>
           </Card>
-
-          <Card className="border-2 border-green-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-green-500 to-green-600 h-2"></div>
+          <Card className="stem-card bg-white border-2 border-[#D6EBFF] overflow-hidden">
+            <div className="bg-[#D6EBFF] h-2"></div>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-green-100 p-3">
-                  <Users className="h-6 w-6 text-green-600" />
+                <div className="rounded-full bg-[#F0FFF0] p-3">
+                  <Users className="h-6 w-6 text-[#00B300]" />
                 </div>
-                <CardTitle className="text-xl">Your Guide</CardTitle>
+                <CardTitle className="text-black text-[1.25rem] font-bold">Your Guide</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="flex items-start gap-5">
-              <div className="h-20 w-20 rounded-full bg-white border-2 border-green-200 flex items-center justify-center shadow-md">
+              <div className="h-20 w-20 rounded-full bg-white border-2 border-[#D6EBFF] flex items-center justify-center shadow-md">
                 <div className="text-4xl">👩‍🔬</div>
               </div>
               <div>
-                <h3 className="font-bold text-lg text-green-700">{program.instructor}</h3>
-                <p className="text-foreground mt-1">
+                <h3 className="font-bold text-lg text-[#00B300]">{program.instructor}</h3>
+                <p className="text-black mt-1">
                   An amazing teacher who loves helping young explorers discover the wonders of {program.category}!
                   With lots of experience making learning fun and exciting for kids of all ages.
                 </p>
@@ -272,79 +267,73 @@ export default function ProgramDetailsPage() {
             </CardContent>
           </Card>
         </div>
-
         <div className="space-y-8">
-          <Card className="border-2 border-purple-200 overflow-hidden sticky top-4">
-            <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-2"></div>
+          <Card className="stem-card bg-white border-2 border-[#D6EBFF] overflow-hidden sticky top-4">
+            <div className="bg-[#D6EBFF] h-2"></div>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-purple-100 p-3">
-                  <Calendar className="h-6 w-6 text-purple-600" />
+                <div className="rounded-full bg-[#F8F0FF] p-3">
+                  <Calendar className="h-6 w-6 text-[#7B00FF]" />
                 </div>
-                <CardTitle className="text-xl">Adventure Details</CardTitle>
+                <CardTitle className="text-black text-[1.25rem] font-bold">Adventure Details</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex flex-wrap gap-2">
-                <Badge className="bg-blue-500 hover:bg-blue-600 text-white text-sm py-1 px-3">{program.category}</Badge>
-                <Badge variant="outline" className="border-2 border-green-300 text-green-700 text-sm py-1 px-3">{program.level}</Badge>
+                <Badge className="bg-[#F0F8FF] text-[#0078FF] border border-[#D6EBFF] text-sm py-1 px-3">{program.category}</Badge>
+                <Badge variant="outline" className="border-2 border-[#00B300] text-[#00B300] text-sm py-1 px-3">{program.level}</Badge>
               </div>
-
-              <div className="bg-purple-50 rounded-xl p-5 space-y-4">
+              <div className="bg-[#F8F0FF] rounded-xl p-5 space-y-4">
                 <div className="flex items-start gap-4">
                   <div className="bg-white p-2 rounded-full shadow-sm">
-                    <Calendar className="h-5 w-5 text-purple-600" />
+                    <Calendar className="h-5 w-5 text-[#7B00FF]" />
                   </div>
                   <div>
-                    <p className="font-bold text-purple-700">When</p>
-                    <p className="text-foreground">{program.date}</p>
+                    <p className="font-bold text-[#7B00FF]">When</p>
+                    <p className="text-black">{program.date}</p>
                   </div>
                 </div>
-
                 <div className="flex items-start gap-4">
                   <div className="bg-white p-2 rounded-full shadow-sm">
-                    <Clock className="h-5 w-5 text-purple-600" />
+                    <Clock className="h-5 w-5 text-[#7B00FF]" />
                   </div>
                   <div>
-                    <p className="font-bold text-purple-700">Time</p>
-                    <p className="text-foreground">
+                    <p className="font-bold text-[#7B00FF]">Time</p>
+                    <p className="text-black">
                       {program.time} <span className="text-sm">({program.duration})</span>
                     </p>
                   </div>
                 </div>
-
                 <div className="flex items-start gap-4">
                   <div className="bg-white p-2 rounded-full shadow-sm">
-                    <MapPin className="h-5 w-5 text-purple-600" />
+                    <MapPin className="h-5 w-5 text-[#7B00FF]" />
                   </div>
                   <div>
-                    <p className="font-bold text-purple-700">Where</p>
-                    <p className="text-foreground">{program.location}</p>
+                    <p className="font-bold text-[#7B00FF]">Where</p>
+                    <p className="text-black">{program.location}</p>
                   </div>
                 </div>
-
                 <div className="flex items-start gap-4">
                   <div className="bg-white p-2 rounded-full shadow-sm">
-                    <Users className="h-5 w-5 text-purple-600" />
+                    <Users className="h-5 w-5 text-[#7B00FF]" />
                   </div>
                   <div>
-                    <p className="font-bold text-purple-700">Spots Left</p>
-                    <p className="text-foreground">{program.seats} spots available</p>
+                    <p className="font-bold text-[#7B00FF]">Spots Left</p>
+                    <p className="text-black">{program.seats} spots available</p>
                   </div>
                 </div>
               </div>
-
-              <div className="bg-blue-50 rounded-xl p-5">
+              <div className="bg-[#F0F8FF] rounded-xl p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="font-bold text-blue-700">Adventure Price</p>
-                    <p className="text-3xl font-bold text-blue-600">{program.price}</p>
+                    <p className="font-bold text-[#0078FF]">Adventure Price</p>
+                    <p className="text-3xl font-bold text-[#0078FF]">{program.price}</p>
                   </div>
                   <div className="text-5xl">🎒</div>
                 </div>
                 <Button
                   onClick={handleRegister}
-                  className="w-full py-6 text-lg rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  className="w-full py-6 text-lg rounded-[0.625rem] bg-[#0078FF] text-white hover:bg-[#005fcc] shadow-sm hover:shadow-md transition-all btn-primary"
                 >
                   Join This Adventure!
                 </Button>

@@ -102,22 +102,21 @@ export default function ProgramsPage() {
   }, [search, category, level, ageGroup, format])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-black">Programs</h1>
+        <h1 className="text-[2.5rem] font-bold text-black">Programs</h1>
         <p className="text-black">Browse and register for STEM programs and workshops</p>
       </div>
-
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex w-full max-w-sm items-center space-x-2">
           <Input
             type="search"
             placeholder="Search programs..."
-            className="w-full border-[#D6EBFF] text-black"
+            className="w-full border-[#D6EBFF] text-black bg-white placeholder:text-[#888] focus-visible:ring-[#0078FF]"
             value={searchValue}
             onChange={handleSearchChange}
           />
-          <Button type="submit" size="icon" className="bg-[#0078FF] text-white">
+          <Button type="submit" size="icon" variant="default">
             <Search className="h-4 w-4" />
             <span className="sr-only">Search</span>
           </Button>
@@ -170,10 +169,9 @@ export default function ProgramsPage() {
             </SelectContent>
           </Select>
           <Button
-            className="btn-outline"
+            variant="outline"
             size="icon"
             onClick={() => {
-              // Reset all filters
               router.push(pathname)
               setSearchValue("")
             }}
@@ -183,9 +181,7 @@ export default function ProgramsPage() {
           </Button>
         </div>
       </div>
-
-      <Separator />
-
+      <Separator className="bg-[#D6EBFF]" />
       {isLoading ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {Array(6)
@@ -196,10 +192,11 @@ export default function ProgramsPage() {
         </div>
       ) : programs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <h3 className="text-lg font-semibold text-black">No programs found</h3>
+          <h3 className="text-[1.5rem] font-bold text-black">No programs found</h3>
           <p className="text-black mt-2">Try adjusting your filters or search terms</p>
           <Button
-            className="btn-outline mt-4"
+            variant="outline"
+            className="mt-4"
             onClick={() => {
               router.push(pathname)
               setSearchValue("")
@@ -209,45 +206,43 @@ export default function ProgramsPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {programs.map((program) => {
             // Get category-specific elements
             let categoryColor = "";
             let categoryIcon = null;
             let categoryEmoji = "";
-
             switch(program.category) {
               case "Engineering":
               case "engineering":
                 categoryColor = "bg-[#0078FF]";
-                categoryIcon = <Rocket className="h-10 w-10 text-white wiggling" />;
+                categoryIcon = <Rocket className="h-10 w-10 text-[#0078FF] wiggling" />;
                 categoryEmoji = "🤖";
                 break;
               case "Computer Science":
               case "computer-science":
                 categoryColor = "bg-[#00B300]";
-                categoryIcon = <Code className="h-10 w-10 text-white wiggling" />;
+                categoryIcon = <Code className="h-10 w-10 text-[#00B300] wiggling" />;
                 categoryEmoji = "💻";
                 break;
               case "Science":
               case "science":
                 categoryColor = "bg-[#7B00FF]";
-                categoryIcon = <Atom className="h-10 w-10 text-white wiggling" />;
+                categoryIcon = <Atom className="h-10 w-10 text-[#7B00FF] wiggling" />;
                 categoryEmoji = "🔬";
                 break;
               case "Mathematics":
               case "mathematics":
                 categoryColor = "bg-[#FFC800]";
-                categoryIcon = <Brain className="h-10 w-10 text-white wiggling" />;
+                categoryIcon = <Brain className="h-10 w-10 text-[#FFC800] wiggling" />;
                 categoryEmoji = "🧮";
                 break;
               default:
                 categoryColor = "bg-[#0078FF]";
-                categoryIcon = <Rocket className="h-10 w-10 text-white wiggling" />;
+                categoryIcon = <Rocket className="h-10 w-10 text-[#0078FF] wiggling" />;
                 categoryEmoji = "🚀";
             }
-
-            // Get difficulty stars
+            // Difficulty stars
             let difficultyStars = null;
             switch(program.level) {
               case "Beginner":
@@ -265,59 +260,46 @@ export default function ProgramsPage() {
               default:
                 difficultyStars = <div className="flex"><Star className="h-4 w-4 text-[#00B300]" /></div>;
             }
-
             return (
-              <Card key={program.id} className="program-card overflow-hidden">
-                <div className={`${categoryColor} p-6 flex justify-between items-center`}>
-                  <div className="bg-white/20 p-3 rounded-full">
+              <Card key={program.id} className="stem-card bg-white border-2 border-[#D6EBFF] rounded-[0.625rem] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="rounded-full bg-white border-2 border-[#D6EBFF] p-3 flex items-center justify-center">
                     {categoryIcon}
                   </div>
-                  <div className="badge">
-                    Ages {program.ageGroup || "8-12"}
+                  <span className="text-2xl">{categoryEmoji}</span>
+                  <Badge className="bg-[#F0F8FF] text-black border border-[#D6EBFF] ml-auto">Ages {program.ageGroup || "8-12"}</Badge>
+                </div>
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="text-[1.5rem] font-bold text-black">{program.title}</h3>
+                  <span className="text-lg font-bold text-black">{program.price}</span>
+                </div>
+                <p className="text-black mb-4">{program.description}</p>
+                <div className="flex flex-wrap gap-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-[#0078FF]" />
+                    <span className="text-black">{program.date}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-[#0078FF]" />
+                    <span className="text-black">{program.duration}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-[#0078FF]" />
+                    <span className="text-black">{program.seats} spots</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-black">Difficulty:</span>
+                    {difficultyStars}
                   </div>
                 </div>
-                <div className="card-content">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-xl font-bold text-black">{program.title}</h3>
-                    <div className="text-2xl">{categoryEmoji}</div>
-                  </div>
-                  <p className="text-black mb-4">{program.description}</p>
-                  <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                    <div>
-                      <p className="text-[#555555]">Date</p>
-                      <p className="font-medium text-black">{program.date}</p>
-                    </div>
-                    <div>
-                      <p className="text-[#555555]">Time</p>
-                      <p className="font-medium text-black">{program.time}</p>
-                    </div>
-                    <div>
-                      <p className="text-[#555555]">Duration</p>
-                      <p className="font-medium text-black">{program.duration}</p>
-                    </div>
-                    <div>
-                      <p className="text-[#555555]">Seats</p>
-                      <p className="font-medium text-black">{program.seats} available</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-black text-sm">Difficulty:</span>
-                      {difficultyStars}
-                    </div>
-                    <div className="text-lg font-bold text-black">
-                      {program.price}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <CardFooter>
-                <Button className="btn-primary w-full" asChild>
-                  <Link href={`/dashboard/programs/${program.id}`}>Register Now</Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          )})}
+                <CardFooter className="p-0 pt-2">
+                  <Button className="bg-[#0078FF] text-white rounded-[0.625rem] w-full hover:bg-[#005fcc] shadow-sm hover:shadow-md transition-all btn-primary" asChild>
+                    <Link href={`/dashboard/programs/${program.id}`}>Register Now</Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            )
+          })}
         </div>
       )}
     </div>
