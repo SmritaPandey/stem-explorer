@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useEffect, useState, useCallback, useTransition } from "react"
 import Link from "next/link"
-import { Filter, Search, Rocket, Code, Atom, Brain, Star, Calendar, Clock, MapPin, Users } from "lucide-react"
+import { Filter, Search, Star, Calendar, Clock, Users } from "lucide-react" // Removed Rocket, Code, Atom, Brain, MapPin
 import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { debounce } from "lodash"
 
@@ -209,75 +209,61 @@ export default function ProgramsPage() {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {programs.map((program) => {
             // Get category-specific elements
-            let categoryColor = "";
-            let categoryIcon = null;
-            let categoryEmoji = "";
-            switch(program.category) {
-              case "Engineering":
-              case "engineering":
-                categoryColor = "bg-[#0078FF]";
-                categoryIcon = <Rocket className="h-10 w-10 text-[#0078FF] wiggling" />;
-                categoryEmoji = "🤖";
-                break;
-              case "Computer Science":
-              case "computer-science":
-                categoryColor = "bg-[#00B300]";
-                categoryIcon = <Code className="h-10 w-10 text-[#00B300] wiggling" />;
-                categoryEmoji = "💻";
-                break;
-              case "Science":
-              case "science":
-                categoryColor = "bg-[#7B00FF]";
-                categoryIcon = <Atom className="h-10 w-10 text-[#7B00FF] wiggling" />;
-                categoryEmoji = "🔬";
-                break;
-              case "Mathematics":
-              case "mathematics":
-                categoryColor = "bg-[#FFC800]";
-                categoryIcon = <Brain className="h-10 w-10 text-[#FFC800] wiggling" />;
-                categoryEmoji = "🧮";
-                break;
-              default:
-                categoryColor = "bg-[#0078FF]";
-                categoryIcon = <Rocket className="h-10 w-10 text-[#0078FF] wiggling" />;
-                categoryEmoji = "🚀";
+            // Get category-specific emoji (optional, as icon is now dynamic)
+            let categoryEmoji = "🚀" // Default emoji
+            if (program.category) {
+              const catLower = program.category.toLowerCase()
+              if (catLower.includes("engineering")) categoryEmoji = "🤖"
+              else if (catLower.includes("computer science") || catLower.includes("coding")) categoryEmoji = "💻"
+              else if (catLower.includes("science")) categoryEmoji = "🔬"
+              else if (catLower.includes("mathematics")) categoryEmoji = "🧮"
             }
-            // Difficulty stars
-            let difficultyStars = null;
-            switch(program.level) {
-              case "Beginner":
-              case "beginner":
-                difficultyStars = <div className="flex"><Star className="h-4 w-4 text-[#00B300]" /></div>;
-                break;
-              case "Intermediate":
-              case "intermediate":
-                difficultyStars = <div className="flex"><Star className="h-4 w-4 text-[#0078FF]" /><Star className="h-4 w-4 text-[#0078FF]" /></div>;
-                break;
-              case "Advanced":
-              case "advanced":
-                difficultyStars = <div className="flex"><Star className="h-4 w-4 text-[#7B00FF]" /><Star className="h-4 w-4 text-[#7B00FF]" /><Star className="h-4 w-4 text-[#7B00FF]" /></div>;
-                break;
-              default:
-                difficultyStars = <div className="flex"><Star className="h-4 w-4 text-[#00B300]" /></div>;
+
+            // Difficulty stars based on program.level (which is "N/A" from getFilteredPrograms)
+            let difficultyStars = null
+            // The program.level is "N/A" as per lib/data.ts for getFilteredPrograms
+            // So, we won't render stars unless we change that.
+            // For now, let's reflect "N/A" or hide this section.
+            if (program.level && program.level.toLowerCase() !== "n/a") {
+              switch (program.level.toLowerCase()) {
+                case "beginner":
+                  difficultyStars = <div className="flex"><Star className="h-4 w-4 text-[#00B300]" /></div>
+                  break
+                case "intermediate":
+                  difficultyStars = <div className="flex"><Star className="h-4 w-4 text-[#0078FF]" /><Star className="h-4 w-4 text-[#0078FF]" /></div>
+                  break
+                case "advanced":
+                  difficultyStars = <div className="flex"><Star className="h-4 w-4 text-[#7B00FF]" /><Star className="h-4 w-4 text-[#7B00FF]" /><Star className="h-4 w-4 text-[#7B00FF]" /></div>
+                  break
+                default:
+                  difficultyStars = <span className="text-sm text-gray-500">Not Rated</span>
+              }
+            } else {
+              difficultyStars = <span className="text-sm text-gray-500">Level: N/A</span>
             }
+
+            const ProgramIcon = program.icon // program.icon is already a LucideIcon component
+
             return (
               <Card key={program.id} className="stem-card bg-white border-2 border-[#D6EBFF] rounded-[0.625rem] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="rounded-full bg-white border-2 border-[#D6EBFF] p-3 flex items-center justify-center">
-                    {categoryIcon}
+                    {ProgramIcon && <ProgramIcon className="h-10 w-10 text-[#0078FF] wiggling" />}
                   </div>
                   <span className="text-2xl">{categoryEmoji}</span>
-                  <Badge className="bg-[#F0F8FF] text-black border border-[#D6EBFF] ml-auto">Ages {program.ageGroup || "8-12"}</Badge>
+                  <Badge className="bg-[#F0F8FF] text-black border border-[#D6EBFF] ml-auto">
+                    Ages {program.ageGroup || "N/A"}
+                  </Badge>
                 </div>
                 <div className="mb-2 flex items-center justify-between">
                   <h3 className="text-[1.5rem] font-bold text-black">{program.title}</h3>
                   <span className="text-lg font-bold text-black">{program.price}</span>
                 </div>
-                <p className="text-black mb-4">{program.description}</p>
-                <div className="flex flex-wrap gap-4 mb-4">
+                <p className="text-black mb-4 h-20 overflow-hidden text-ellipsis">{program.description}</p> {/* Added height and overflow */}
+                <div className="flex flex-wrap gap-x-4 gap-y-2 mb-4"> {/* Adjusted gap for better wrapping */}
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-[#0078FF]" />
-                    <span className="text-black">{program.date}</span>
+                    <span className="text-black">{program.date}</span> {/* Will display "TBD" */}
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-[#0078FF]" />
@@ -288,7 +274,7 @@ export default function ProgramsPage() {
                     <span className="text-black">{program.seats} spots</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-black">Difficulty:</span>
+                    {/* Difficulty stars or N/A text is now handled by difficultyStars variable */}
                     {difficultyStars}
                   </div>
                 </div>

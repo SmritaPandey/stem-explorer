@@ -43,9 +43,16 @@ router.post('/register', async (req, res) => {
         });
 
       if (profileError) {
-        console.error('Error creating profile:', profileError);
-        // Continue anyway as the auth user was created
+        console.error('Critical error creating profile after auth user creation:', profileError);
+        // This is a critical issue. The user exists in auth.users but not in public.profiles.
+        // Ideally, we might try to delete the auth.user here, but that adds complexity.
+        // For now, return a server error indicating profile creation failure.
+        return res.status(500).json({ error: 'User registered but failed to create user profile.' });
       }
+    } else {
+      // This case should ideally not be reached if authError is handled,
+      // but as a safeguard:
+      return res.status(500).json({ error: 'User registration succeeded but no user data returned.' });
     }
 
     res.status(201).json({
@@ -56,8 +63,10 @@ router.post('/register', async (req, res) => {
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: error.errors });
     } else {
-      console.error('Registration error:', error);
-      res.status(500).json({ error: 'Server error' });
+      // Log the actual error for server-side inspection
+      console.error('Registration process error:', error);
+      // Return a generic server error message to the client
+      res.status(500).json({ error: 'An unexpected error occurred during registration.' });
     }
   }
 });

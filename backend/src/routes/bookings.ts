@@ -122,13 +122,24 @@ router.post('/', async (req, res) => {
 
     if (bookingError) throw bookingError;
 
-    // Update the session capacity
+    // CRITICAL SECTION: Potential Race Condition for capacity update.
+    // The read of current_capacity and the subsequent update are not atomic.
+    // Under concurrent requests, this could lead to incorrect capacity counts.
+    // Consider using a Supabase database function (RPC) to handle booking and capacity update atomically.
+    // For example: SELECT update_session_capacity_on_booking(session_id_param);
     const { error: updateError } = await supabase
       .from('program_sessions')
       .update({ current_capacity: session.current_capacity + 1 })
       .eq('id', sessionId);
 
-    if (updateError) throw updateError;
+    // If this update fails, the booking was created but capacity not updated.
+    // This could lead to inconsistencies. Error handling here is important.
+    if (updateError) {
+        console.error('Failed to update session capacity after booking:', updateError);
+        // Potentially try to revert booking or flag for admin attention.
+        // For now, just log and return the booking, but acknowledge inconsistency.
+        // Returning a 500 here might be too drastic as the booking *was* made.
+    }
 
     res.status(201).json(booking);
   } catch (error) {
@@ -181,15 +192,21 @@ router.put('/:id/cancel', async (req, res) => {
 
     if (sessionError) throw sessionError;
 
-    // Update session capacity
+    // CRITICAL SECTION: Potential Race Condition for capacity update.
+    // Similar to booking creation, decrementing capacity here is not atomic with booking cancellation.
+    // Consider using a Supabase database function (RPC) for atomicity.
+    const newCapacity = Math.max(0, session.current_capacity - 1)
     const { error: updateSessionError } = await supabase
       .from('program_sessions')
       .update({
-        current_capacity: Math.max(0, session.current_capacity - 1)
+        current_capacity: newCapacity
       })
       .eq('id', booking.session_id);
 
-    if (updateSessionError) throw updateSessionError;
+    if (updateSessionError) {
+      console.error('Failed to update session capacity after cancelling booking:', updateSessionError);
+      // Booking was cancelled, but capacity not updated. Flag for attention.
+    }
 
     res.json({ message: 'Booking cancelled successfully' });
   } catch (error) {
