@@ -4,10 +4,18 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import {
-  ArrowLeft, Calendar, Clock, CreditCard, MapPin, Rocket,
-  Users, CheckCircle, Sparkles, Star, Beaker, Brain, Puzzle, Lightbulb, Loader2
+  ArrowLeft, Calendar, Clock, CreditCard, MapPin, Rocket, Code, Atom, BookOpen, // Added Code, Atom, BookOpen
+  Users, CheckCircle, Sparkles, Star, Beaker, Brain, Puzzle, Lightbulb, Loader2, AlertTriangle
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
+// Import Program type, getProgramById, createStripeCheckoutSession, ProgramSession, getProgramSessions, Material, getMaterialsForProgram, getMaterialDownloadUrlClient
+import { 
+  type Program, getProgramById, createStripeCheckoutSession, // Updated createBooking to createStripeCheckoutSession
+  type ProgramSession, getProgramSessions, type NewBookingData, // NewBookingData might be adjusted/removed if not directly used
+  type Material, getMaterialsForProgram, getMaterialDownloadUrlClient
+} from "@/lib/data" 
+import type { LucideIcon } from "lucide-react"
+import { Download, FileText, Image as ImageIcon, Video, Music, Archive, AlertCircle, ExternalLink } from "lucide-react" // Icons for materials & ExternalLink
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,317 +34,465 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
+// Icon mapping for program details
+const IconMapDetails: Record<string, LucideIcon> = {
+  Rocket: Rocket,
+  Code: Code,
+  Atom: Atom,
+  Brain: Brain,
+  Puzzle: Puzzle,
+  Beaker: Beaker,
+  Lightbulb: Lightbulb,
+  Sparkles: Sparkles,
+  // Add other icons as needed from Program.icon string
+};
+
+const getProgramIconComponent = (iconName?: string | null, className?: string): React.ReactElement => {
+  const IconComponent = iconName ? IconMapDetails[iconName] : null;
+  if (IconComponent) {
+    return <IconComponent className={className || "h-6 w-6 text-primary"} />;
+  }
+  return <Star className={className || "h-6 w-6 text-gray-400"} />; // Default fallback icon
+};
+
+
 export default function ProgramDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const { toast } = useToast()
-  const { user } = useAuth()
+  const { user } = useAuth() // Assuming useAuth provides user info for registration logic
+
+  const [program, setProgram] = useState<Program | null>(null)
+  const [isLoading, setIsLoading] = useState(true) // For program details
+  const [error, setError] = useState<string | null>(null) // For program details
+
+  const [sessions, setSessions] = useState<ProgramSession[]>([])
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null)
+  const [sessionsLoading, setSessionsLoading] = useState(false)
+  const [sessionsError, setSessionsError] = useState<string | null>(null)
+
+  const [materials, setMaterials] = useState<Material[]>([])
+  const [materialsLoading, setMaterialsLoading] = useState(false)
+  const [materialsError, setMaterialsError] = useState<string | null>(null)
+  const [isDownloading, setIsDownloading] = useState<number | null>(null); // Store ID of material being downloaded
+
   const [showPaymentDialog, setShowPaymentDialog] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState("credit-card")
   const [isProcessing, setIsProcessing] = useState(false)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
 
-  // Helper function to get icon based on program name
-  function getIconForProgram(programName: string) {
-    const lowerName = programName.toLowerCase()
-    if (lowerName.includes('robot')) return Rocket
-    if (lowerName.includes('cod') || lowerName.includes('program')) return Puzzle
-    if (lowerName.includes('science')) return Beaker
-    if (lowerName.includes('math')) return Brain
-    if (lowerName.includes('wizard')) return Sparkles
-    if (lowerName.includes('explor')) return Lightbulb
-    return Rocket // Default icon
-  }
+  useEffect(() => {
+    const fetchProgramData = async () => {
+      setIsLoading(true); 
+      setSessionsLoading(true);
+      setMaterialsLoading(true);
+      setError(null);
+      setSessionsError(null);
+      setMaterialsError(null);
+      
+      const programIdStr = params.id as string;
 
-  // Mock program data with more child-friendly descriptions
-  const programOptions = [
-    {
-      id: "1",
-      title: "Robot Builders Club",
-      description:
-        "Build your own robot friend and teach it to do cool tricks! Perfect for beginners who want to learn about robots in a fun way.",
-      longDescription:
-        "Join our exciting Robot Builders Club where you'll create your very own robot friend! 🤖 You'll learn how robots work, build cool mechanical parts, and program your robot to do amazing tricks. Work with other young inventors to solve fun challenges. All the tools and parts are provided, so just bring your imagination! No experience needed - this adventure is perfect for first-time robot builders!",
-      category: "Engineering",
-      level: "Beginner",
-      duration: "2 hours",
-      date: "June 15, 2023",
-      time: "10:00 AM - 12:00 PM",
-      location: "STEM Innovation Center, 123 Science Way",
-      instructor: "Dr. Jane Smith",
-      seats: 15,
-      price: "$25",
-      requirements: [
-        "No experience needed - beginners welcome!",
-        "For explorers ages 8-12",
-        "All robot parts and tools provided",
-        "Bring your creativity and a notebook",
-      ],
-      topics: [
-        "Meet different types of robots",
-        "Build cool robot parts",
-        "Make your robot move with simple code",
-        "Solve fun robot challenges",
-        "Create your own robot friend",
-        "Show off what your robot can do",
-      ],
-    },
-    {
-      id: "2",
-      title: "Code Wizards",
-      description:
-        "Create your own games and animations with fun, colorful block coding! No experience needed.",
-      longDescription:
-        "Become a Code Wizard in this magical coding adventure! ✨ You'll learn how to create your very own games, stories, and animations using colorful blocks that snap together like puzzle pieces. No typing required! Design your own characters, make them move, and build exciting games that you can share with friends and family. This workshop is perfect for young creators who want to bring their ideas to life through code.",
-      category: "Programming",
-      level: "Beginner",
-      duration: "1.5 hours",
-      date: "June 20, 2023",
-      time: "3:30 PM - 5:00 PM",
-      location: "STEM Innovation Center, 123 Science Way",
-      instructor: "Mr. Alex Johnson",
-      seats: 12,
-      price: "$20",
-      requirements: [
-        "No coding experience needed",
-        "For explorers ages 7-10",
-        "All computers provided",
-        "Bring your imagination!",
-      ],
-      topics: [
-        "Learn coding with colorful blocks",
-        "Create your own characters",
-        "Make animations and stories",
-        "Build simple games",
-        "Add sounds and special effects",
-        "Share your creations with friends",
-      ],
-    },
-    {
-      id: "3",
-      title: "Science Explorers",
-      description:
-        "Mix potions, launch rockets, and discover the secrets of nature with amazing experiments!",
-      longDescription:
-        "Calling all curious minds to join our Science Explorers adventure! 🔬 Get ready to mix colorful potions that bubble and change color, launch mini-rockets into the sky, and uncover amazing secrets about the world around us. You'll conduct real experiments like a scientist, make exciting discoveries, and take home some of your creations. This hands-on workshop is full of 'wow' moments that will make science your new favorite subject!",
-      category: "Science",
-      level: "Beginner",
-      duration: "2 hours",
-      date: "June 25, 2023",
-      time: "10:00 AM - 12:00 PM",
-      location: "STEM Innovation Center, 123 Science Way",
-      instructor: "Dr. Maria Garcia",
-      seats: 18,
-      price: "$22",
-      requirements: [
-        "No experience needed - just curiosity!",
-        "For explorers ages 6-11",
-        "All materials provided",
-        "Wear clothes that can get a little messy",
-      ],
-      topics: [
-        "Mix colorful chemical reactions",
-        "Launch mini-rockets",
-        "Discover invisible ink secrets",
-        "Create slime and bouncy balls",
-        "Build a mini volcano",
-        "Explore the science of rainbows",
-      ],
+      if (!programIdStr || isNaN(Number(programIdStr))) {
+        setError("Invalid program ID.");
+        setIsLoading(false); setSessionsLoading(false); setMaterialsLoading(false);
+        setProgram(null);
+        return;
+      }
+      const programId = Number(programIdStr);
+
+      try {
+        const fetchedProgram = await getProgramById(programId);
+        if (fetchedProgram) {
+          setProgram(fetchedProgram);
+          // Fetch sessions
+          try {
+            const fetchedSessions = await getProgramSessions(programId);
+            setSessions(fetchedSessions);
+          } catch (sessionError: any) {
+            console.error("Failed to fetch program sessions:", sessionError);
+            setSessionsError("Could not load available sessions.");
+          }
+          // Fetch materials
+          try {
+            const fetchedMaterials = await getMaterialsForProgram(programId);
+            setMaterials(fetchedMaterials);
+          } catch (materialError: any) {
+            console.error("Failed to fetch program materials:", materialError);
+            setMaterialsError("Could not load course materials.");
+          }
+        } else {
+          setError("Program not found.");
+        }
+      } catch (e: any) {
+        console.error("Failed to fetch program details:", e);
+        setError("Could not load program details.");
+      } finally {
+        setIsLoading(false);
+        setSessionsLoading(false);
+        setMaterialsLoading(false);
+      }
+    };
+
+    if (params.id) {
+      fetchProgramData();
+    } else {
+      setError("No program ID provided.");
+      setIsLoading(false); setSessionsLoading(false); setMaterialsLoading(false);
     }
-  ];
+  }, [params.id]);
 
-  // Find the program based on the ID
-  const program = programOptions.find(p => p.id === params.id) || programOptions[0];
-  const ProgramIcon = getIconForProgram(program.title);
 
   const handleRegister = () => {
-    setShowPaymentDialog(true)
+    if (!program) return;
+    if (!selectedSessionId) {
+      toast({
+        title: "Select a Session",
+        description: "Please select an available session before proceeding.",
+        variant: "warning",
+      });
+      return;
+    }
+    setShowPaymentDialog(true);
   }
 
-  const handlePayment = () => {
-    setIsProcessing(true)
-
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false)
-      setShowPaymentDialog(false)
-      setShowSuccessDialog(true)
-
-      // Show success toast
+  const handlePayment = async () => {
+    if (!program || !user || !selectedSessionId) {
       toast({
-        title: "Hooray! Registration complete! 🎉",
-        description: `You've joined the ${program.title} adventure!`,
-      })
-    }, 2000)
+        title: "Error",
+        description: "User, program, or session details are missing. Cannot proceed.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsProcessing(true);
+
+    try {
+      // Call the API to create a Stripe Checkout session
+      const checkoutResponse = await createStripeCheckoutSession(program.id, selectedSessionId);
+
+      if (checkoutResponse && checkoutResponse.url) {
+        // Redirect to Stripe Checkout page
+        window.location.href = checkoutResponse.url;
+        // No need to set success dialog here, Stripe will redirect to success/cancel URLs
+      } else {
+        toast({
+          title: "Checkout Failed",
+          description: "Could not initiate the payment process. Please try again.",
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+      }
+    } catch (error: any) {
+      setIsProcessing(false);
+      console.error("Error creating Stripe Checkout session:", error);
+      toast({
+        title: "Payment Error",
+        description: error.message || "An unexpected error occurred with the payment setup. Please try again.",
+        variant: "destructive",
+      });
+    }
+    // Note: isProcessing will remain true if redirected, which is fine.
+    // If not redirected (error), it's set to false.
   }
 
   const handleSuccessClose = () => {
     setShowSuccessDialog(false)
-
-    // Redirect to bookings page
-    router.push("/dashboard/bookings")
+    router.push("/dashboard/bookings") // Redirect to bookings page
   }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="ml-4 text-xl text-foreground">Loading adventure details...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] text-center">
+        <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+        <h2 className="text-2xl font-bold text-destructive mb-2">Oops! Something went wrong.</h2>
+        <p className="text-foreground mb-6">{error}</p>
+        <Button variant="outline" onClick={() => router.push("/dashboard/programs")}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Programs
+        </Button>
+      </div>
+    )
+  }
+
+  if (!program) {
+    // This case should ideally be covered by error state from fetch, but as a fallback:
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] text-center">
+        <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+        <h2 className="text-2xl font-bold text-destructive mb-2">Program Not Found</h2>
+        <p className="text-foreground mb-6">The program you are looking for does not exist or may have been moved.</p>
+        <Button variant="outline" onClick={() => router.push("/dashboard/programs")}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Programs
+        </Button>
+      </div>
+    )
+  }
+  
+  const ProgramIconElement = getProgramIconComponent(program.icon, "h-6 w-6 text-primary wiggling");
+  const DialogProgramIconElement = getProgramIconComponent(program.icon, "h-5 w-5 text-blue-600");
+
 
   return (
     <div className="space-y-8">
-      <div className="bg-white p-6 rounded-[0.625rem] border-2 border-[#D6EBFF]">
+      <div className="bg-card p-6 rounded-lg border">
         <div className="flex items-center gap-4 mb-2">
-          <Button variant="outline" size="icon" className="rounded-full border-2 border-[#D6EBFF] text-[#0078FF]" asChild>
+          <Button variant="outline" size="icon" className="rounded-full" asChild>
             <Link href="/dashboard/programs">
               <ArrowLeft className="h-5 w-5" />
               <span className="sr-only">Back</span>
             </Link>
           </Button>
-          <h1 className="text-[2.5rem] font-bold text-black">{program.title}</h1>
+          <h1 className="text-[2.5rem] font-bold text-foreground">{program.title}</h1>
         </div>
-        <p className="text-black text-lg ml-14">Join this exciting adventure and learn amazing things! 🚀</p>
+        <p className="text-muted-foreground text-lg ml-14">Join this exciting adventure and learn amazing things! 🚀</p>
       </div>
 
       <div className="grid gap-8 md:grid-cols-3">
         <div className="md:col-span-2 space-y-8">
-          <Card className="stem-card bg-white border-2 border-[#D6EBFF] overflow-hidden">
-            <div className="bg-[#D6EBFF] h-2"></div>
+          <Card className="overflow-hidden">
+            <div className="bg-primary/10 h-2"></div>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-[#F0F8FF] p-3">
-                  <ProgramIcon className="h-6 w-6 text-[#0078FF] wiggling" />
+                <div className="rounded-full bg-muted p-3 border">
+                  {ProgramIconElement}
                 </div>
                 <div>
-                  <CardTitle className="text-black text-[1.5rem] font-bold">About This Adventure</CardTitle>
-                  <CardDescription className="text-black">What you'll do and learn</CardDescription>
+                  <CardTitle className="text-foreground text-[1.5rem] font-bold">About This Adventure</CardTitle>
+                  <CardDescription className="text-muted-foreground">What you'll do and learn</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <p className="text-black text-lg">{program.longDescription}</p>
-              <div className="bg-[#F0F8FF] p-5 rounded-xl border border-[#D6EBFF]">
-                <div className="flex items-center gap-2 mb-3">
-                  <Star className="h-5 w-5 text-[#00B300]" />
-                  <h3 className="font-bold text-lg text-[#0078FF]">Cool Things You'll Learn</h3>
+              <p className="text-foreground text-lg">{program.long_description || program.description}</p>
+              
+              {/* Topics Section */}
+              {program.topics && program.topics.length > 0 && (
+                <div className="bg-muted/50 p-5 rounded-xl border">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Star className="h-5 w-5 text-green-500 fill-green-500" />
+                    <h3 className="font-bold text-lg text-primary">Cool Things You'll Learn</h3>
+                  </div>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {program.topics.map((topic, index) => (
+                      <li key={index} className="flex items-center gap-2">
+                        <div className="bg-background p-1 rounded-full border">
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        </div>
+                        <span className="text-foreground">{topic}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {program.topics.map((topic, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <div className="bg-white p-1 rounded-full">
-                        <CheckCircle className="h-4 w-4 text-[#00B300]" />
-                      </div>
-                      <span className="text-black">{topic}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="bg-[#F8F0FF] p-5 rounded-xl border border-[#D6EBFF]">
-                <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="h-5 w-5 text-[#7B00FF]" />
-                  <h3 className="font-bold text-lg text-[#7B00FF]">What You Need to Know</h3>
+              )}
+
+              {/* Requirements Section */}
+              {program.requirements && program.requirements.length > 0 && (
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-xl border border-purple-200 dark:border-purple-700">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="h-5 w-5 text-purple-500 fill-purple-500" />
+                    <h3 className="font-bold text-lg text-purple-600 dark:text-purple-400">What You Need to Know</h3>
+                  </div>
+                  <ul className="space-y-2">
+                    {program.requirements.map((req, index) => (
+                      <li key={index} className="flex items-center gap-2">
+                        <div className="bg-background p-1 rounded-full border">
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        </div>
+                        <span className="text-foreground">{req}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <ul className="space-y-2">
-                  {program.requirements.map((req, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <div className="bg-white p-1 rounded-full">
-                        <CheckCircle className="h-4 w-4 text-[#00B300]" />
-                      </div>
-                      <span className="text-black">{req}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              )}
             </CardContent>
           </Card>
-          <Card className="stem-card bg-white border-2 border-[#D6EBFF] overflow-hidden">
-            <div className="bg-[#D6EBFF] h-2"></div>
+
+          {/* Course Materials Section */}
+          <Card className="overflow-hidden">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-[#F0FFF0] p-3">
-                  <Users className="h-6 w-6 text-[#00B300]" />
-                </div>
-                <CardTitle className="text-black text-[1.25rem] font-bold">Your Guide</CardTitle>
+                  <FileText className="h-6 w-6 text-blue-600" />
+                <CardTitle className="text-foreground text-[1.5rem] font-bold">Course Materials</CardTitle>
               </div>
+              <CardDescription className="text-muted-foreground">Downloadable resources for this program.</CardDescription>
             </CardHeader>
-            <CardContent className="flex items-start gap-5">
-              <div className="h-20 w-20 rounded-full bg-white border-2 border-[#D6EBFF] flex items-center justify-center shadow-md">
-                <div className="text-4xl">👩‍🔬</div>
-              </div>
-              <div>
-                <h3 className="font-bold text-lg text-[#00B300]">{program.instructor}</h3>
-                <p className="text-black mt-1">
-                  An amazing teacher who loves helping young explorers discover the wonders of {program.category}!
-                  With lots of experience making learning fun and exciting for kids of all ages.
-                </p>
-              </div>
+            <CardContent>
+              {materialsLoading && <Loader2 className="h-6 w-6 animate-spin text-primary" />}
+              {materialsError && <p className="text-destructive flex items-center gap-2"><AlertCircle className="h-4 w-4"/> {materialsError}</p>}
+              {!materialsLoading && !materialsError && materials.length === 0 && (
+                <p className="text-muted-foreground">No materials available for this program yet.</p>
+              )}
+              {!materialsLoading && !materialsError && materials.length > 0 && (
+                <ul className="space-y-3">
+                  {materials.map((material) => (
+                    <li key={material.id} className="flex items-center justify-between p-3 rounded-md border bg-muted/20 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        {getMaterialFileIcon(material.file_type)}
+                        <div>
+                          <p className="font-semibold text-foreground">{material.title}</p>
+                          <p className="text-xs text-muted-foreground">{material.file_name} ({(material.file_size / 1024).toFixed(1)} KB)</p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDownloadMaterial(material.id, material.file_name)}
+                        disabled={isDownloading === material.id}
+                      >
+                        {isDownloading === material.id ? 
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 
+                          <Download className="mr-2 h-4 w-4" />
+                        }
+                        Download
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
+
+          {program.instructor && (
+            <Card className="overflow-hidden">
+              <div className="bg-green-500/10 h-2"></div>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-muted p-3 border">
+                    <Users className="h-6 w-6 text-green-600" />
+                  </div>
+                  <CardTitle className="text-foreground text-[1.25rem] font-bold">Your Guide</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="flex items-start gap-5">
+                <div className="h-20 w-20 rounded-full bg-muted border flex items-center justify-center shadow-md">
+                  <div className="text-4xl">👩‍🔬</div> {/* Placeholder, consider storing instructor avatar URL */}
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-green-600">{program.instructor}</h3>
+                  <p className="text-muted-foreground mt-1">
+                    An amazing teacher who loves helping young explorers discover the wonders of {program.category}!
+                    With lots of experience making learning fun and exciting for kids of all ages.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
         <div className="space-y-8">
-          <Card className="stem-card bg-white border-2 border-[#D6EBFF] overflow-hidden sticky top-4">
-            <div className="bg-[#D6EBFF] h-2"></div>
+          <Card className="overflow-hidden sticky top-20"> {/* Adjusted sticky top for better layout */}
+            <div className="bg-purple-500/10 h-2"></div>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-[#F8F0FF] p-3">
-                  <Calendar className="h-6 w-6 text-[#7B00FF]" />
+                <div className="rounded-full bg-muted p-3 border">
+                  <Calendar className="h-6 w-6 text-purple-600" />
                 </div>
-                <CardTitle className="text-black text-[1.25rem] font-bold">Adventure Details</CardTitle>
+                <CardTitle className="text-foreground text-[1.25rem] font-bold">Adventure Details</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Program Badges (Category, Level, etc.) */}
               <div className="flex flex-wrap gap-2">
-                <Badge className="bg-[#F0F8FF] text-[#0078FF] border border-[#D6EBFF] text-sm py-1 px-3">{program.category}</Badge>
-                <Badge variant="outline" className="border-2 border-[#00B300] text-[#00B300] text-sm py-1 px-3">{program.level}</Badge>
+                <Badge variant="secondary">{program.category}</Badge>
+                <Badge variant="outline">{program.level}</Badge>
+                {program.format && <Badge variant="outline">{program.format}</Badge>}
+                {program.age_group && <Badge variant="outline">Ages: {program.age_group}</Badge>}
               </div>
-              <div className="bg-[#F8F0FF] rounded-xl p-5 space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="bg-white p-2 rounded-full shadow-sm">
-                    <Calendar className="h-5 w-5 text-[#7B00FF]" />
-                  </div>
+
+              {/* Session Selection Section */}
+              <Card className="mt-4">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-md">Available Sessions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {sessionsLoading && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
+                  {sessionsError && <p className="text-destructive text-sm flex items-center gap-1"><AlertCircle className="h-4 w-4"/> {sessionsError}</p>}
+                  {!sessionsLoading && !sessionsError && sessions.length === 0 && (
+                    <p className="text-muted-foreground text-sm">No upcoming sessions for this program.</p>
+                  )}
+                  {!sessionsLoading && !sessionsError && sessions.length > 0 && (
+                    <RadioGroup value={selectedSessionId || ""} onValueChange={setSelectedSessionId} className="max-h-60 overflow-y-auto pr-2 space-y-2">
+                      {sessions.map((session) => {
+                        const availableSeats = (session.max_capacity || program.seats) - session.current_capacity;
+                        const isFull = availableSeats <= 0;
+                        const isPast = new Date(session.start_time) < new Date();
+                        const isDisabled = isFull || isPast || session.is_cancelled;
+                        return (
+                          <Label
+                            key={session.id}
+                            htmlFor={session.id}
+                            className={`flex items-center justify-between rounded-md border p-3 hover:border-primary transition-all text-xs
+                              ${selectedSessionId === session.id ? "border-primary ring-1 ring-primary" : "border-muted"}
+                              ${isDisabled ? "opacity-60 cursor-not-allowed bg-muted/30" : "cursor-pointer"}`}
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value={session.id} id={session.id} disabled={isDisabled} />
+                              <div>
+                                <p className="font-medium text-sm">
+                                  {new Date(session.start_time).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                                  {' @ '}
+                                  {new Date(session.start_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                                </p>
+                                {session.is_cancelled && <Badge variant="destructive" className="text-xs mt-1">Cancelled</Badge>}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className={`font-medium text-xs ${isFull ? 'text-destructive' : 'text-green-600'}`}>
+                                {isFull ? "Full" : `${availableSeats} left`}
+                              </p>
+                            </div>
+                          </Label>
+                        );
+                      })}
+                    </RadioGroup>
+                  )}
+                </CardContent>
+              </Card>
+              
+              {/* General Program Info (Location, Duration) */}
+              <div className="bg-muted/50 rounded-xl p-4 space-y-3 border mt-4 text-sm">
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-4 w-4 text-purple-600 mt-0.5 shrink-0" />
                   <div>
-                    <p className="font-bold text-[#7B00FF]">When</p>
-                    <p className="text-black">{program.date}</p>
+                    <p className="font-semibold text-purple-600">Default Location</p>
+                    <p className="text-foreground">{program.location || "Check session details"}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-4">
-                  <div className="bg-white p-2 rounded-full shadow-sm">
-                    <Clock className="h-5 w-5 text-[#7B00FF]" />
-                  </div>
+                <div className="flex items-start gap-3">
+                  <Clock className="h-4 w-4 text-purple-600 mt-0.5 shrink-0" />
                   <div>
-                    <p className="font-bold text-[#7B00FF]">Time</p>
-                    <p className="text-black">
-                      {program.time} <span className="text-sm">({program.duration})</span>
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="bg-white p-2 rounded-full shadow-sm">
-                    <MapPin className="h-5 w-5 text-[#7B00FF]" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#7B00FF]">Where</p>
-                    <p className="text-black">{program.location}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="bg-white p-2 rounded-full shadow-sm">
-                    <Users className="h-5 w-5 text-[#7B00FF]" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#7B00FF]">Spots Left</p>
-                    <p className="text-black">{program.seats} spots available</p>
+                    <p className="font-semibold text-purple-600">Typical Duration</p>
+                    <p className="text-foreground">{program.duration}</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-[#F0F8FF] rounded-xl p-5">
+              
+              {/* Price and Booking Button */}
+              <div className="bg-primary/5 rounded-xl p-5 border border-primary/20 mt-4">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="font-bold text-[#0078FF]">Adventure Price</p>
-                    <p className="text-3xl font-bold text-[#0078FF]">{program.price}</p>
+                    <p className="font-bold text-primary">Adventure Price</p>
+                    <p className="text-3xl font-bold text-primary">{program.price}</p>
                   </div>
                   <div className="text-5xl">🎒</div>
                 </div>
                 <Button
                   onClick={handleRegister}
-                  className="w-full py-6 text-lg rounded-[0.625rem] bg-[#0078FF] text-white hover:bg-[#005fcc] shadow-sm hover:shadow-md transition-all btn-primary"
+                  className="w-full py-6 text-lg"
+                  variant="default"
+                  disabled={!user || !selectedSessionId || sessionsLoading || sessions.find(s=>s.id === selectedSessionId)?.is_cancelled || (sessions.find(s=>s.id === selectedSessionId) && ((sessions.find(s=>s.id === selectedSessionId)!.max_capacity || program.seats) - sessions.find(s=>s.id === selectedSessionId)!.current_capacity <=0))}
                 >
-                  Join This Adventure!
+                  {user ? (selectedSessionId ? "Join This Session!" : "Select a Session") : "Login to Register"}
                 </Button>
+                {!user && <p className="text-xs text-center mt-2 text-muted-foreground">You need to be logged in to register for programs.</p>}
+                 {user && !selectedSessionId && sessions.length > 0 && <p className="text-xs text-center mt-2 text-muted-foreground">Please choose a session above.</p>}
               </div>
             </CardContent>
           </Card>
@@ -345,78 +501,41 @@ export default function ProgramDetailsPage() {
 
       {/* Payment Dialog */}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent className="sm:max-w-[500px] border-2 border-blue-200 rounded-xl">
+        <DialogContent className="sm:max-w-[500px] rounded-lg">
           <DialogHeader className="space-y-3">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-yellow-500" />
-              <DialogTitle className="text-2xl font-bold text-blue-700">Almost There!</DialogTitle>
+              <Sparkles className="h-5 w-5 text-yellow-400" />
+              <DialogTitle className="text-2xl font-bold text-primary">Confirm Your Adventure</DialogTitle>
             </div>
-            <DialogDescription className="text-foreground text-base">
-              Just one more step to join the {program.title} adventure!
+            <DialogDescription className="text-muted-foreground text-base">
+              You're about to register for {program?.title || "this adventure"}. Review the details and proceed to secure payment via Stripe.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-5 py-4">
-            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="bg-white p-2 rounded-full">
-                  <ProgramIcon className="h-5 w-5 text-blue-600" />
+            {/* Program and Session Details */}
+            <div className="bg-muted/50 p-4 rounded-xl border">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-background p-2 rounded-full border">
+                  {DialogProgramIconElement}
                 </div>
-                <h3 className="font-bold text-blue-700">{program.title}</h3>
+                <h3 className="font-bold text-primary">{program?.title}</h3>
               </div>
-              <div className="flex items-center gap-2 ml-12 text-foreground">
-                <Calendar className="h-4 w-4 text-gray-500" />
-                <span>{program.date} • {program.time}</span>
+              <div className="flex items-center gap-2 ml-12 text-muted-foreground text-sm">
+                <Calendar className="h-4 w-4" />
+                <span>
+                  Session: {selectedSessionId ? 
+                    new Date(sessions.find(s => s.id === selectedSessionId)?.start_time || '').toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short'}) : 
+                    'N/A'}
+                </span>
               </div>
             </div>
-
-            <div className="space-y-3">
-              <h4 className="font-bold text-lg text-purple-700 flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                Payment Method
-              </h4>
-              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="bg-purple-50 p-4 rounded-xl border border-purple-100">
-                <div className="flex items-center space-x-2 mb-3">
-                  <RadioGroupItem value="credit-card" id="credit-card" className="border-2 border-purple-300 text-purple-600" />
-                  <Label htmlFor="credit-card" className="flex items-center gap-2 font-medium cursor-pointer">
-                    <CreditCard className="h-5 w-5 text-purple-600" />
-                    Credit Card
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="paypal" id="paypal" className="border-2 border-purple-300 text-purple-600" />
-                  <Label htmlFor="paypal" className="font-medium cursor-pointer">PayPal</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {paymentMethod === "credit-card" && (
-              <div className="space-y-4 bg-green-50 p-4 rounded-xl border border-green-100">
-                <div className="grid w-full items-center gap-2">
-                  <Label htmlFor="card-number" className="font-medium text-green-700">Card Number</Label>
-                  <Input id="card-number" placeholder="1234 5678 9012 3456" className="border-2 border-green-200" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid w-full items-center gap-2">
-                    <Label htmlFor="expiry" className="font-medium text-green-700">Expiry Date</Label>
-                    <Input id="expiry" placeholder="MM/YY" className="border-2 border-green-200" />
-                  </div>
-                  <div className="grid w-full items-center gap-2">
-                    <Label htmlFor="cvc" className="font-medium text-green-700">CVC</Label>
-                    <Input id="cvc" placeholder="123" className="border-2 border-green-200" />
-                  </div>
-                </div>
-                <div className="grid w-full items-center gap-2">
-                  <Label htmlFor="name" className="font-medium text-green-700">Name on Card</Label>
-                  <Input id="name" placeholder="Parent/Guardian Name" className="border-2 border-green-200" />
-                </div>
-              </div>
-            )}
-
-            <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100 flex items-center justify-between">
+            
+            {/* Price Confirmation */}
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-xl border border-yellow-200 dark:border-yellow-700 flex items-center justify-between">
               <div>
                 <p className="font-medium text-yellow-700">Total Price</p>
-                <p className="text-2xl font-bold text-yellow-600">{program.price}</p>
+                <p className="text-2xl font-bold text-yellow-600">{program?.price}</p>
               </div>
               <div className="text-4xl">💰</div>
             </div>
@@ -426,13 +545,14 @@ export default function ProgramDetailsPage() {
             <Button
               variant="outline"
               onClick={() => setShowPaymentDialog(false)}
-              className="rounded-full border-2 border-red-300 text-red-600 hover:bg-red-50"
+              className="rounded-full"
             >
               Go Back
             </Button>
             <Button
               onClick={handlePayment}
-              className="rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 py-6 px-8"
+              className="rounded-full py-6 px-8" 
+              variant="default"
               disabled={isProcessing}
             >
               {isProcessing ? (
@@ -450,20 +570,21 @@ export default function ProgramDetailsPage() {
 
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="sm:max-w-[500px] border-2 border-green-200 rounded-xl">
+        <DialogContent className="sm:max-w-[500px] rounded-lg">
           <div className="flex flex-col items-center justify-center py-6 text-center space-y-4">
-            <div className="bg-green-100 p-4 rounded-full">
-              <CheckCircle className="h-12 w-12 text-green-600" />
+            <div className="bg-green-100 dark:bg-green-900/20 p-4 rounded-full">
+              <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400" />
             </div>
-            <h2 className="text-2xl font-bold text-green-700">Woohoo! You're All Set!</h2>
-            <p className="text-foreground text-lg">
-              You've successfully joined the {program.title} adventure!
+            <h2 className="text-2xl font-bold text-green-700 dark:text-green-300">Woohoo! You're All Set!</h2>
+            <p className="text-muted-foreground text-lg">
+              You've successfully joined the {program?.title || "adventure"}!
               We can't wait to see you there!
             </p>
             <div className="text-6xl my-4">🎉</div>
             <Button
               onClick={handleSuccessClose}
-              className="rounded-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 py-6 px-8 mt-4"
+              className="rounded-full py-6 px-8 mt-4"
+              variant="default"
             >
               See My Adventures
             </Button>

@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Atom, Eye, EyeOff } from "lucide-react"
+import { Atom, Eye, EyeOff, Loader2 } from "lucide-react" // Added Loader2
+import { useAuth } from "@/lib/auth-context" // Import useAuth
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -24,8 +25,10 @@ const formSchema = z.object({
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false) // Added loading state
   const router = useRouter()
   const { toast } = useToast()
+  const { login } = useAuth() // Get login function from useAuth
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -35,18 +38,25 @@ export default function LoginPage() {
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // In a real application, you would validate credentials with your backend
-    console.log(values)
-
-    // Show success toast
-    toast({
-      title: "Login successful!",
-      description: "Welcome back to STEM Explorer.",
-    })
-
-    // Redirect to dashboard
-    router.push("/dashboard")
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    try {
+      await login(values.email, values.password);
+      // Redirect is handled by AuthContext's login function on success
+      toast({
+        title: "Login successful!",
+        description: "Welcome back!",
+      });
+      // router.push("/dashboard"); // AuthContext should handle this
+    } catch (error: any) {
+      toast({
+        title: "Login Failed",
+        description: error.message || "Invalid email or password.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -54,7 +64,7 @@ export default function LoginPage() {
       <div className="container flex h-16 items-center px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
           <Atom className="h-6 w-6 text-primary" />
-          <span>STEM Explorer</span>
+          <span>Kid Qubit</span>
         </Link>
       </div>
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
@@ -109,7 +119,8 @@ export default function LoginPage() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   Log in
                 </Button>
               </form>

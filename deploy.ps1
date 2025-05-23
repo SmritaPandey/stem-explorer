@@ -1,6 +1,6 @@
-# STEM Explorer Platform Deployment Script for Windows
+# Kid Qubit Platform Deployment Script for Windows
 
-Write-Host "Starting STEM Explorer Platform deployment..." -ForegroundColor Green
+Write-Host "Starting Kid Qubit Platform deployment..." -ForegroundColor Green
 
 # Check if .env files exist
 if (-not (Test-Path ".env")) {

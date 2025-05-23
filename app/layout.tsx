@@ -10,8 +10,8 @@ import { Providers } from "./providers"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "STEM Explorer - Educational Platform for Young Engineers",
-  description: "A comprehensive educational registration platform for young aspiring engineers",
+  title: "Kid Qubit - Empowering Young Innovators",
+  description: "Kid Qubit offers engaging STEM programs for children, fostering creativity and problem-solving skills in science, technology, engineering, and math.",
     generator: 'v0.dev'
 }
 

@@ -1,5 +1,5 @@
 {
-  "name": "stem-explorer-backend",
+  "name": "kid-qubit-backend",
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {

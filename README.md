@@ -1,4 +1,4 @@
-# STEM Explorer Platform
+# Kid Qubit Platform
 
 A comprehensive web platform for STEM education programs, allowing students to browse, book, and attend STEM classes.
 
@@ -31,8 +31,8 @@ A comprehensive web platform for STEM education programs, allowing students to b
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/SmritaPandey/stem-explorer.git
-   cd stem-explorer
+   git clone https://github.com/SmritaPandey/kid-qubit.git
+   cd kid-qubit
    ```
 
 2. Install dependencies:

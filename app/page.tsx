@@ -13,7 +13,7 @@ export default function Home() {
               <Atom className="h-7 w-7 text-[#0078FF] wiggling" />
               <Sparkles className="h-4 w-4 text-[#FFC800] absolute -top-1 -right-1" />
             </div>
-            <span className="text-black">STEM Explorer</span>
+            <span className="text-black">Kid Qubit</span>
           </div>
           <nav className="hidden md:flex gap-6">
             <Link href="#features" className="nav-link">
@@ -249,11 +249,11 @@ export default function Home() {
                 </div>
                 <div className="space-y-4">
                   <h2 className="text-4xl font-bold tracking-tighter sm:text-5xl text-black">
-                    About STEM Explorer
+                    About Kid Qubit
                   </h2>
                   <div className="space-y-4">
                     <p className="text-black text-xl">
-                      <span className="font-bold">STEM Explorer</span> is a magical place where curious kids can discover the wonders of science, technology, engineering, and math! 🌈
+                      <span className="font-bold">Kid Qubit</span> is a magical place where curious kids can discover the wonders of science, technology, engineering, and math! 🌈
                     </p>
                     <p className="text-black text-xl">
                       We believe learning should be <span className="font-bold text-[#7B00FF]">FUN</span> and <span className="font-bold text-[#00B300]">EXCITING</span>! Our programs are designed to spark imagination and creativity while building important skills. 💡
@@ -316,7 +316,7 @@ export default function Home() {
                 <Atom className="h-7 w-7 text-[#0078FF] wiggling" />
                 <Sparkles className="h-4 w-4 text-[#FFC800] absolute -top-1 -right-1" />
               </div>
-              <span className="font-bold text-xl text-black">STEM Explorer</span>
+              <span className="font-bold text-xl text-black">Kid Qubit</span>
             </div>
 
             <div className="flex flex-wrap justify-center gap-6 text-center md:justify-end md:gap-8">
@@ -337,7 +337,7 @@ export default function Home() {
 
           <div className="mt-8 flex flex-col items-center gap-4 md:flex-row md:justify-between">
             <p className="text-center text-black md:text-left">
-              © {new Date().getFullYear()} STEM Explorer. Making learning fun for kids everywhere! 🌟
+              © {new Date().getFullYear()} Kid Qubit. Making learning fun for kids everywhere! 🌟
             </p>
             <div className="flex gap-4">
               <div className="bg-[#F0F8FF] p-2 rounded-full border border-[#D6EBFF]">

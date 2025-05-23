@@ -46,7 +46,7 @@ export default function ForgotPasswordPage() {
       <div className="container flex h-16 items-center px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
           <Atom className="h-6 w-6 text-primary" />
-          <span>STEM Explorer</span>
+          <span>Kid Qubit</span>
         </Link>
       </div>
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">

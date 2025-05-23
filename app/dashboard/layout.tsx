@@ -85,7 +85,7 @@ export default function DashboardLayout({
               <Sparkles className="h-4 w-4 text-[#FFC800] absolute -top-1 -right-1" />
             </div>
             <span className="text-black">
-              STEM Explorer
+              Kid Qubit
             </span>
           </div>
 

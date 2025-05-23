@@ -6,11 +6,11 @@
   :root {
     /* High contrast theme with pure white background and black text */
     --background: 0 0% 100%; /* Pure white background (#FFFFFF) */
-    --foreground: 0 0% 0%; /* Pure black text (#000000) for maximum contrast */
+    --foreground: 220 20% 25%; /* Dark Blue-Gray text for a softer, sleek look */
     --card: 0 0% 100%; /* White card background (#FFFFFF) */
-    --card-foreground: 0 0% 0%; /* Black text on cards (#000000) */
+    --card-foreground: 220 20% 25%; /* Dark Blue-Gray text on cards */
     --popover: 0 0% 100%; /* White popover background (#FFFFFF) */
-    --popover-foreground: 0 0% 0%; /* Black text on popovers (#000000) */
+    --popover-foreground: 220 20% 25%; /* Dark Blue-Gray text on popovers */
 
     /* Colorful buttons - kid-friendly but with good contrast */
     --primary: 210 100% 50%; /* Bright blue (#0078FF) */
@@ -25,7 +25,7 @@
     --muted-foreground: 0 0% 45%; /* Gray text on muted backgrounds (#737373) */
 
     /* Accent colors */
-    --accent: 45 100% 50%; /* Bright yellow (#FFC800) */
+    --accent: 40 100% 55%; /* Warmer yellow/orange accent (#FFBF1F) */
     --accent-foreground: 0 0% 0%; /* Black text on accent (#000000) */
 
     /* Destructive: Bright red for warnings/errors */
@@ -34,7 +34,7 @@
 
     /* Border and input colors */
     --border: 210 100% 88%; /* Light blue border (#D6EBFF) */
-    --input: 0 0% 95%; /* Light gray input background (#F2F2F2) */
+    --input: 0 0% 98%; /* Very light gray input background (#FAFAFA) */
     --ring: 210 100% 50%; /* Primary blue for focus rings (#0078FF) */
 
     /* Radius for rounded corners - consistent 10px radius */
@@ -92,40 +92,40 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    color: #000000;
+    color: hsl(var(--foreground)); /* Use the new foreground color */
   }
 
   /* Improved heading typography with consistent spacing */
   h1 {
-    @apply font-bold tracking-tight text-black;
+    @apply font-bold tracking-tight text-foreground; /* Use text-foreground */
     line-height: 1.2;
     margin-bottom: 1rem;
     font-size: 2.5rem;
   }
 
   h2 {
-    @apply font-bold tracking-tight text-black;
+    @apply font-bold tracking-tight text-foreground; /* Use text-foreground */
     line-height: 1.2;
     margin-bottom: 0.75rem;
     font-size: 2rem;
   }
 
   h3 {
-    @apply font-bold tracking-tight text-black;
+    @apply font-bold tracking-tight text-foreground; /* Use text-foreground */
     line-height: 1.2;
     margin-bottom: 0.5rem;
     font-size: 1.5rem;
   }
 
   h4, h5, h6 {
-    @apply font-bold tracking-tight text-black;
+    @apply font-bold tracking-tight text-foreground; /* Use text-foreground */
     line-height: 1.2;
     margin-bottom: 0.5rem;
   }
 
   /* Improved link accessibility */
   a {
-    color: #0078FF;
+    color: hsl(var(--primary)); /* Use primary color for links */
     text-decoration: none;
     transition: color 0.2s ease;
   }
@@ -140,19 +140,19 @@
 
   /* Improved paragraph readability */
   p {
-    color: #000000;
+    color: hsl(var(--foreground)); /* Use the new foreground color */
     line-height: 1.6;
     margin-bottom: 1rem;
   }
 
   /* Consistent form elements */
   label {
-    @apply block text-black font-medium;
+    @apply block text-foreground font-medium; /* Use text-foreground */
     margin-bottom: 0.5rem;
   }
 
   input, textarea, select {
-    @apply bg-white text-black border-2 rounded-lg;
+    @apply bg-background text-foreground border-2 rounded-lg; /* Use background and foreground */
     border-color: #D6EBFF;
     padding: 0.5rem 0.75rem;
     width: 100%;
@@ -224,11 +224,11 @@
 }
 
 .stem-card h2, .stem-card h3, .stem-card h4 {
-  @apply text-black font-bold;
+  @apply text-foreground font-bold; /* Use text-foreground */
 }
 
 .stem-card p {
-  @apply text-black;
+  @apply text-foreground; /* Use text-foreground */
 }
 
 /* Card with colored top border */
@@ -239,11 +239,11 @@
 }
 
 .colored-card h2, .colored-card h3, .colored-card h4 {
-  @apply text-black font-bold;
+  @apply text-foreground font-bold; /* Use text-foreground */
 }
 
 .colored-card p {
-  @apply text-black;
+  @apply text-foreground; /* Use text-foreground */
 }
 
 .colored-card.blue {
@@ -277,11 +277,11 @@
 }
 
 .program-card h3 {
-  @apply text-black font-bold;
+  @apply text-foreground font-bold; /* Use text-foreground */
 }
 
 .program-card p {
-  @apply text-black;
+  @apply text-foreground; /* Use text-foreground */
 }
 
 .program-card:hover {
@@ -404,7 +404,7 @@
 }
 
 .speech-bubble p {
-  color: #000000;
+  color: hsl(var(--foreground)); /* Use the new foreground color */
   margin-bottom: 0;
 }
 
@@ -468,7 +468,7 @@
 }
 
 .alert p {
-  color: #000000;
+  color: hsl(var(--foreground)); /* Use the new foreground color */
   margin-bottom: 0;
 }
 
@@ -489,7 +489,7 @@
 
 /* Improved navigation styles */
 .nav-link {
-  @apply inline-flex items-center rounded-lg px-3 py-2 text-black font-medium transition-colors;
+  @apply inline-flex items-center rounded-lg px-3 py-2 text-foreground font-medium transition-colors; /* Use text-foreground */
 }
 
 .nav-link:hover {

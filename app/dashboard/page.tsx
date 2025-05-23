@@ -24,7 +24,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null)
   const [achievements, setAchievements] = useState<string[]>([
     "Completed first program",
-    "Joined the STEM Explorer community",
+    "Joined the Kid Qubit community",
     "Attended a Robotics workshop"
   ])
   const [points, setPoints] = useState<number>(125)

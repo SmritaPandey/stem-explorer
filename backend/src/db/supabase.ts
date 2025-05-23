@@ -5,13 +5,13 @@ dotenv.config();
 
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || ''; // Changed to SUPABASE_SERVICE_KEY
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing Supabase URL or key. Please check your environment variables.');
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing Supabase URL or Service Key. Please check your environment variables (SUPABASE_URL, SUPABASE_SERVICE_KEY).'); // Updated error message
   process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey); // Use service key
 
 export default supabase;

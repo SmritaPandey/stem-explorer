@@ -71,7 +71,7 @@ export default function ContactPage() {
                 <Atom className="h-7 w-7 text-[#0078FF] wiggling" />
                 <Sparkles className="h-4 w-4 text-[#FFC800] absolute -top-1 -right-1" />
               </div>
-              <span className="text-black">STEM Explorer</span>
+              <span className="text-black">Kid Qubit</span>
             </Link>
           </div>
           <nav className="hidden md:flex gap-6">
@@ -281,7 +281,7 @@ export default function ContactPage() {
                 <Atom className="h-7 w-7 text-[#0078FF] wiggling" />
                 <Sparkles className="h-4 w-4 text-[#FFC800] absolute -top-1 -right-1" />
               </div>
-              <span className="font-bold text-xl text-black">STEM Explorer</span>
+              <span className="font-bold text-xl text-black">Kid Qubit</span>
             </div>
 
             <div className="flex flex-wrap justify-center gap-6 text-center md:justify-end md:gap-8">
@@ -302,7 +302,7 @@ export default function ContactPage() {
 
           <div className="mt-8 flex flex-col items-center gap-4 md:flex-row md:justify-between">
             <p className="text-center text-black md:text-left">
-              © {new Date().getFullYear()} STEM Explorer. Making learning fun for kids everywhere! 🌟
+              © {new Date().getFullYear()} Kid Qubit. Making learning fun for kids everywhere! 🌟
             </p>
             <div className="flex gap-4">
               <div className="bg-[#F0F8FF] p-2 rounded-full border border-[#D6EBFF]">

@@ -1,6 +1,6 @@
-# STEM Explorer Platform Deployment Guide
+# Kid Qubit Platform Deployment Guide
 
-This guide provides step-by-step instructions for deploying the STEM Explorer platform in a production environment.
+This guide provides step-by-step instructions for deploying the Kid Qubit platform in a production environment.
 
 ## Prerequisites
 
@@ -18,8 +18,8 @@ This guide provides step-by-step instructions for deploying the STEM Explorer pl
 #### Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/stem-explorer.git
-cd stem-explorer
+git clone https://github.com/yourusername/kid-qubit.git
+cd kid-qubit
 ```
 
 #### Set Up Environment Variables

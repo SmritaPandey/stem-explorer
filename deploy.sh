@@ -1,10 +1,10 @@
 #!/bin/bash
-# STEM Explorer Platform Deployment Script
+# Kid Qubit Platform Deployment Script
 
 # Exit on error
 set -e
 
-echo "Starting STEM Explorer Platform deployment..."
+echo "Starting Kid Qubit Platform deployment..."
 
 # Check if .env files exist
 if [ ! -f ".env" ]; then

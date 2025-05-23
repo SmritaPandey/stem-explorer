@@ -3,7 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Bell, Eye, EyeOff, Lock, Save, User } from "lucide-react"
+import { Bell, Eye, EyeOff, Lock, Save, User, Loader2 } from "lucide-react" // Added Loader2
+import api from "@/lib/api" // Import the API client
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -42,6 +43,7 @@ export default function SettingsPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isPasswordSaving, setIsPasswordSaving] = useState(false) // Loading state for password
 
   const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
     resolver: zodResolver(passwordFormSchema),
@@ -63,22 +65,39 @@ export default function SettingsPage() {
     },
   })
 
-  function onPasswordSubmit(values: z.infer<typeof passwordFormSchema>) {
-    // In a real application, you would send this data to your backend
-    console.log(values)
+  async function onPasswordSubmit(values: z.infer<typeof passwordFormSchema>) {
+    setIsPasswordSaving(true);
+    try {
+      // The new API route /api/users/password only needs the newPassword.
+      // Current password verification is handled by Supabase if we were using
+      // its client-side updateUser method with a current password.
+      // However, our backend route uses admin client to set password directly.
+      // If current password check is desired, API route needs to be enhanced.
+      // For now, aligning with the created API route.
+      await api.put('/api/users/password', {
+        newPassword: values.newPassword,
+      });
 
-    // Show success toast
-    toast({
-      title: "Password updated",
-      description: "Your password has been updated successfully.",
-    })
+      toast({
+        title: "Password updated",
+        description: "Your password has been updated successfully.",
+      });
 
-    // Reset the form
-    passwordForm.reset({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    })
+      passwordForm.reset({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (error: any) {
+      console.error("Failed to update password", error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.error || "Failed to update password. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPasswordSaving(false);
+    }
   }
 
   function onNotificationsSubmit(values: z.infer<typeof notificationsFormSchema>) {
@@ -140,6 +159,7 @@ export default function SettingsPage() {
 
           <Form {...passwordForm}>
             <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6">
+              {/* Current Password field might be removed if not used by API, or API needs adjustment */}
               <FormField
                 control={passwordForm.control}
                 name="currentPassword"
@@ -155,6 +175,7 @@ export default function SettingsPage() {
                           size="icon"
                           className="absolute right-0 top-0 h-full px-3"
                           onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          disabled={isPasswordSaving}
                         >
                           {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           <span className="sr-only">{showCurrentPassword ? "Hide password" : "Show password"}</span>
@@ -180,6 +201,7 @@ export default function SettingsPage() {
                           size="icon"
                           className="absolute right-0 top-0 h-full px-3"
                           onClick={() => setShowNewPassword(!showNewPassword)}
+                          disabled={isPasswordSaving}
                         >
                           {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           <span className="sr-only">{showNewPassword ? "Hide password" : "Show password"}</span>
@@ -206,6 +228,7 @@ export default function SettingsPage() {
                           size="icon"
                           className="absolute right-0 top-0 h-full px-3"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          disabled={isPasswordSaving}
                         >
                           {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           <span className="sr-only">{showConfirmPassword ? "Hide password" : "Show password"}</span>
@@ -216,8 +239,8 @@ export default function SettingsPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit">
-                <Save className="mr-2 h-4 w-4" />
+              <Button type="submit" disabled={isPasswordSaving}>
+                {isPasswordSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 Update Password
               </Button>
             </form>

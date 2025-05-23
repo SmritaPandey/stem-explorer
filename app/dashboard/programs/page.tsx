@@ -15,7 +15,28 @@ import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { ProgramCardSkeleton } from "@/components/program-card-skeleton"
-import { type Program, getFilteredPrograms } from "@/lib/data"
+// Updated import to use getPrograms
+import { type Program, getPrograms } from "@/lib/data" 
+import type { LucideIcon } from "lucide-react"
+
+// Helper function to map icon string to Lucide component
+const IconMap: Record<string, LucideIcon> = {
+  Rocket: Rocket,
+  Code: Code,
+  Atom: Atom,
+  Brain: Brain,
+  // Add other icons as needed
+};
+
+const getIconComponent = (iconName?: string | null): React.ReactElement => {
+  const IconComponent = iconName ? IconMap[iconName] : null;
+  if (IconComponent) {
+    // Common props for icons, adjust as needed
+    return <IconComponent className="h-10 w-10 text-[#0078FF] group-hover:text-[#005fcc] transition-colors" />;
+  }
+  // Return a default icon or null if no match
+  return <Star className="h-10 w-10 text-gray-400" />; // Default fallback icon
+};
 
 export default function ProgramsPage() {
   const router = useRouter()
@@ -83,16 +104,18 @@ export default function ProgramsPage() {
     const fetchPrograms = async () => {
       setIsLoading(true)
       try {
-        const data = await getFilteredPrograms({
+        // Use the new getPrograms function
+        const data = await getPrograms({ 
           search,
           category,
           level,
-          ageGroup,
+          ageGroup, // Ensure your getPrograms handles mapping this to age_group if needed
           format,
         })
         setPrograms(data)
       } catch (error) {
         console.error("Failed to fetch programs:", error)
+        setPrograms([]) // Set to empty array on error
       } finally {
         setIsLoading(false)
       }
@@ -104,15 +127,15 @@ export default function ProgramsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-[2.5rem] font-bold text-black">Programs</h1>
-        <p className="text-black">Browse and register for STEM programs and workshops</p>
+        <h1 className="text-[2.5rem] font-bold text-foreground">Programs</h1>
+        <p className="text-foreground">Browse and register for STEM programs and workshops</p>
       </div>
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex w-full max-w-sm items-center space-x-2">
           <Input
             type="search"
             placeholder="Search programs..."
-            className="w-full border-[#D6EBFF] text-black bg-white placeholder:text-[#888] focus-visible:ring-[#0078FF]"
+            className="w-full" // Rely on global input styling
             value={searchValue}
             onChange={handleSearchChange}
           />
@@ -123,49 +146,49 @@ export default function ProgramsPage() {
         </div>
         <div className="flex flex-col gap-4 sm:flex-row">
           <Select value={category} onValueChange={(value) => updateFilters("category", value)}>
-            <SelectTrigger className="w-[180px] border-[#D6EBFF] text-black">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
-            <SelectContent className="bg-white border-[#D6EBFF]">
-              <SelectItem value="all" className="text-black">All Categories</SelectItem>
-              <SelectItem value="engineering" className="text-black">Engineering</SelectItem>
-              <SelectItem value="computer-science" className="text-black">Computer Science</SelectItem>
-              <SelectItem value="science" className="text-black">Science</SelectItem>
-              <SelectItem value="mathematics" className="text-black">Mathematics</SelectItem>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="Engineering">Engineering</SelectItem>
+              <SelectItem value="Computer Science">Computer Science</SelectItem>
+              <SelectItem value="Science">Science</SelectItem>
+              <SelectItem value="Mathematics">Mathematics</SelectItem>
             </SelectContent>
           </Select>
           <Select value={level} onValueChange={(value) => updateFilters("level", value)}>
-            <SelectTrigger className="w-[180px] border-[#D6EBFF] text-black">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Level" />
             </SelectTrigger>
-            <SelectContent className="bg-white border-[#D6EBFF]">
-              <SelectItem value="all" className="text-black">All Levels</SelectItem>
-              <SelectItem value="beginner" className="text-black">Beginner</SelectItem>
-              <SelectItem value="intermediate" className="text-black">Intermediate</SelectItem>
-              <SelectItem value="advanced" className="text-black">Advanced</SelectItem>
+            <SelectContent>
+              <SelectItem value="all">All Levels</SelectItem>
+              <SelectItem value="Beginner">Beginner</SelectItem>
+              <SelectItem value="Intermediate">Intermediate</SelectItem>
+              <SelectItem value="Advanced">Advanced</SelectItem>
             </SelectContent>
           </Select>
           <Select value={ageGroup} onValueChange={(value) => updateFilters("ageGroup", value)}>
-            <SelectTrigger className="w-[180px] border-[#D6EBFF] text-black">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Age Group" />
             </SelectTrigger>
-            <SelectContent className="bg-white border-[#D6EBFF]">
-              <SelectItem value="all" className="text-black">All Ages</SelectItem>
-              <SelectItem value="8-12" className="text-black">8-12 years</SelectItem>
-              <SelectItem value="10-14" className="text-black">10-14 years</SelectItem>
-              <SelectItem value="12-16" className="text-black">12-16 years</SelectItem>
-              <SelectItem value="14-18" className="text-black">14-18 years</SelectItem>
+            <SelectContent>
+              <SelectItem value="all">All Ages</SelectItem>
+              <SelectItem value="8-12">8-12 years</SelectItem>
+              <SelectItem value="10-14">10-14 years</SelectItem>
+              <SelectItem value="12-16">12-16 years</SelectItem>
+              <SelectItem value="14-18">14-18 years</SelectItem>
             </SelectContent>
           </Select>
           <Select value={format} onValueChange={(value) => updateFilters("format", value)}>
-            <SelectTrigger className="w-[180px] border-[#D6EBFF] text-black">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Format" />
             </SelectTrigger>
-            <SelectContent className="bg-white border-[#D6EBFF]">
-              <SelectItem value="all" className="text-black">All Formats</SelectItem>
-              <SelectItem value="in-person" className="text-black">In-person</SelectItem>
-              <SelectItem value="virtual" className="text-black">Virtual</SelectItem>
-              <SelectItem value="hybrid" className="text-black">Hybrid</SelectItem>
+            <SelectContent>
+              <SelectItem value="all">All Formats</SelectItem>
+              <SelectItem value="In-person">In-person</SelectItem>
+              <SelectItem value="Virtual">Virtual</SelectItem>
+              <SelectItem value="Hybrid">Hybrid</SelectItem>
             </SelectContent>
           </Select>
           <Button
@@ -181,8 +204,8 @@ export default function ProgramsPage() {
           </Button>
         </div>
       </div>
-      <Separator className="bg-[#D6EBFF]" />
-      {isLoading ? (
+      <Separator /> 
+      {isLoading || isPending ? ( // Show skeleton when loading or transitioning
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {Array(6)
             .fill(0)
@@ -192,14 +215,14 @@ export default function ProgramsPage() {
         </div>
       ) : programs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <h3 className="text-[1.5rem] font-bold text-black">No programs found</h3>
-          <p className="text-black mt-2">Try adjusting your filters or search terms</p>
+          <h3 className="text-[1.5rem] font-bold text-foreground">No programs found</h3>
+          <p className="text-foreground mt-2">Try adjusting your filters or search terms</p>
           <Button
             variant="outline"
             className="mt-4"
             onClick={() => {
-              router.push(pathname)
-              setSearchValue("")
+              router.push(pathname) // Reset to base URL without params
+              setSearchValue("")    // Clear local search input state
             }}
           >
             Reset Filters
@@ -208,93 +231,69 @@ export default function ProgramsPage() {
       ) : (
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {programs.map((program) => {
-            // Get category-specific elements
-            let categoryColor = "";
-            let categoryIcon = null;
-            let categoryEmoji = "";
+            const programIconElement = getIconComponent(program.icon);
+            
+            // Determine category specific emoji (optional, can be removed if icon is primary)
+            let categoryEmoji = "🚀"; // Default emoji
             switch(program.category) {
-              case "Engineering":
-              case "engineering":
-                categoryColor = "bg-[#0078FF]";
-                categoryIcon = <Rocket className="h-10 w-10 text-[#0078FF] wiggling" />;
-                categoryEmoji = "🤖";
-                break;
-              case "Computer Science":
-              case "computer-science":
-                categoryColor = "bg-[#00B300]";
-                categoryIcon = <Code className="h-10 w-10 text-[#00B300] wiggling" />;
-                categoryEmoji = "💻";
-                break;
-              case "Science":
-              case "science":
-                categoryColor = "bg-[#7B00FF]";
-                categoryIcon = <Atom className="h-10 w-10 text-[#7B00FF] wiggling" />;
-                categoryEmoji = "🔬";
-                break;
-              case "Mathematics":
-              case "mathematics":
-                categoryColor = "bg-[#FFC800]";
-                categoryIcon = <Brain className="h-10 w-10 text-[#FFC800] wiggling" />;
-                categoryEmoji = "🧮";
-                break;
-              default:
-                categoryColor = "bg-[#0078FF]";
-                categoryIcon = <Rocket className="h-10 w-10 text-[#0078FF] wiggling" />;
-                categoryEmoji = "🚀";
+              case "Engineering": categoryEmoji = "🤖"; break;
+              case "Computer Science": categoryEmoji = "💻"; break;
+              case "Science": categoryEmoji = "🔬"; break;
+              case "Mathematics": categoryEmoji = "🧮"; break;
             }
+
             // Difficulty stars
             let difficultyStars = null;
             switch(program.level) {
               case "Beginner":
-              case "beginner":
-                difficultyStars = <div className="flex"><Star className="h-4 w-4 text-[#00B300]" /></div>;
+                difficultyStars = <div className="flex"><Star className="h-4 w-4 text-green-500 fill-green-500" /></div>;
                 break;
               case "Intermediate":
-              case "intermediate":
-                difficultyStars = <div className="flex"><Star className="h-4 w-4 text-[#0078FF]" /><Star className="h-4 w-4 text-[#0078FF]" /></div>;
+                difficultyStars = <div className="flex"><Star className="h-4 w-4 text-blue-500 fill-blue-500" /><Star className="h-4 w-4 text-blue-500 fill-blue-500" /></div>;
                 break;
               case "Advanced":
-              case "advanced":
-                difficultyStars = <div className="flex"><Star className="h-4 w-4 text-[#7B00FF]" /><Star className="h-4 w-4 text-[#7B00FF]" /><Star className="h-4 w-4 text-[#7B00FF]" /></div>;
+                difficultyStars = <div className="flex"><Star className="h-4 w-4 text-purple-500 fill-purple-500" /><Star className="h-4 w-4 text-purple-500 fill-purple-500" /><Star className="h-4 w-4 text-purple-500 fill-purple-500" /></div>;
                 break;
               default:
-                difficultyStars = <div className="flex"><Star className="h-4 w-4 text-[#00B300]" /></div>;
+                difficultyStars = <div className="flex"><Star className="h-4 w-4 text-gray-400 fill-gray-400" /></div>;
             }
             return (
-              <Card key={program.id} className="stem-card bg-white border-2 border-[#D6EBFF] rounded-[0.625rem] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="rounded-full bg-white border-2 border-[#D6EBFF] p-3 flex items-center justify-center">
-                    {categoryIcon}
+              <Card key={program.id} className="group flex flex-col">
+                <CardHeader className="p-4">
+                  <div className="flex items-center gap-4 mb-3">
+                    <div className="rounded-full bg-muted border p-3 flex items-center justify-center group-hover:border-primary transition-colors">
+                      {programIconElement}
+                    </div>
+                    <span className="text-2xl">{categoryEmoji}</span>
+                    <Badge variant="outline" className="ml-auto">Ages {program.age_group || "N/A"}</Badge>
                   </div>
-                  <span className="text-2xl">{categoryEmoji}</span>
-                  <Badge className="bg-[#F0F8FF] text-black border border-[#D6EBFF] ml-auto">Ages {program.ageGroup || "8-12"}</Badge>
-                </div>
-                <div className="mb-2 flex items-center justify-between">
-                  <h3 className="text-[1.5rem] font-bold text-black">{program.title}</h3>
-                  <span className="text-lg font-bold text-black">{program.price}</span>
-                </div>
-                <p className="text-black mb-4">{program.description}</p>
-                <div className="flex flex-wrap gap-4 mb-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-[#0078FF]" />
-                    <span className="text-black">{program.date}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-[#0078FF]" />
-                    <span className="text-black">{program.duration}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-[#0078FF]" />
-                    <span className="text-black">{program.seats} spots</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-black">Difficulty:</span>
+                  <CardTitle className="text-xl font-bold">{program.title}</CardTitle>
+                  <CardDescription className="text-lg font-semibold text-primary">{program.price}</CardDescription>
+                </CardHeader>
+                <CardContent className="p-4 flex-grow">
+                  <p className="text-sm mb-4 line-clamp-3">{program.description}</p>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      <span>{new Date(program.date).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-primary" />
+                      <span>{program.duration}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-primary" />
+                      <span>{program.seats} spots</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Level:</span>
                     {difficultyStars}
                   </div>
                 </div>
-                <CardFooter className="p-0 pt-2">
-                  <Button className="bg-[#0078FF] text-white rounded-[0.625rem] w-full hover:bg-[#005fcc] shadow-sm hover:shadow-md transition-all btn-primary" asChild>
-                    <Link href={`/dashboard/programs/${program.id}`}>Register Now</Link>
+                </CardContent>
+                <CardFooter className="p-4 pt-0">
+                  <Button variant="default" className="w-full" asChild>
+                    <Link href={`/dashboard/programs/${program.id}`}>View Details</Link>
                   </Button>
                 </CardFooter>
               </Card>

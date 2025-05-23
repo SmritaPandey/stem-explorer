@@ -1,12 +1,12 @@
-# Supabase Setup for STEM Explorer
+# Supabase Setup for Kid Qubit
 
-This directory contains SQL scripts to set up your Supabase database for the STEM Explorer platform.
+This directory contains SQL scripts to set up your Supabase database for the Kid Qubit platform.
 
 ## Setup Instructions
 
 1. **Log in to your Supabase Dashboard**:
    - Go to https://app.supabase.com and log in
-   - Select your project: "STEM Explorer"
+   - Select your project: "Kid Qubit"
 
 2. **Run the Schema SQL**:
    - Go to the SQL Editor in your Supabase dashboard

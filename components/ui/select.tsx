@@ -19,7 +19,7 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      // THEME: STEM Explorer select trigger
+      // THEME: Kid Qubit select trigger
       "flex h-10 w-full items-center justify-between rounded-[0.625rem] border-2 border-[#D6EBFF] bg-white px-3 py-2 text-sm text-[#0078FF] font-semibold ring-offset-background placeholder:text-[#888] focus:outline-none focus:ring-2 focus:ring-[#0078FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 transition-all hover:bg-[#F0F8FF] hover:shadow-md",
       className
     )}
