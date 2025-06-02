@@ -27,6 +27,11 @@ export default function ProtectedRoute({
     }
   }, [isAuthenticated, isAdmin, isLoading, router, adminOnly]);
 
+  // For static site, don't immediately redirect during build
+  if (typeof window === 'undefined') {
+    return <>{children}</>;
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">

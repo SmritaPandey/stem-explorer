@@ -1,8 +1,8 @@
 /**
- * Supabase Client Configuration
- *
- * This file initializes and exports the Supabase client for use throughout the application.
- * It uses environment variables for the Supabase URL and anonymous key.
+ * Supabase Client Configuration - Static Site Version
+ * 
+ * This file provides a mock Supabase client for static site generation.
+ * It simulates Supabase functionality without requiring actual backend connections.
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -29,13 +29,38 @@ const dummyClient = {
     signUp: () => Promise.resolve({ data: { user: null }, error: { message: 'Development mode - no Supabase connection' } }),
     signOut: () => Promise.resolve({ error: null }),
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    signInWithOAuth: () => Promise.resolve({ data: { user: null }, error: null }),
+    getUser: () => Promise.resolve({ data: { user: null }, error: null }),
   },
   from: () => ({
-    select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }) }),
+    select: () => ({ 
+      eq: () => ({ 
+        single: () => Promise.resolve({ data: null, error: null }),
+        maybeSingle: () => Promise.resolve({ data: null, error: null }),
+        order: () => Promise.resolve({ data: [], error: null }) 
+      }),
+      order: () => Promise.resolve({ data: [], error: null }),
+      limit: () => ({ 
+        order: () => Promise.resolve({ data: [], error: null }),
+      }),
+      in: () => ({ 
+        limit: () => ({ maybeSingle: () => Promise.resolve({ data: null, error: null }) }),
+      })
+    }),
     insert: () => Promise.resolve({ data: null, error: null }),
-    update: () => Promise.resolve({ data: null, error: null }),
+    update: () => ({
+      eq: () => Promise.resolve({ data: null, error: null }),
+    }),
     delete: () => Promise.resolve({ data: null, error: null }),
   }),
+  storage: {
+    from: () => ({
+      getPublicUrl: () => ({ data: { publicUrl: '' } }),
+      remove: () => Promise.resolve({ error: null }),
+      createSignedUrl: () => Promise.resolve({ data: null, error: null }),
+      upload: () => Promise.resolve({ data: null, error: null })
+    }),
+  },
 };
 
 // Create and export the Supabase client if environment variables are available

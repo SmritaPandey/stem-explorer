@@ -21,6 +21,12 @@ const nextConfig = {
     parallelServerBuildTraces: false,
     parallelServerCompiles: false,
   },
+  output: 'export',
+  // Disable server components since we're building a static site
+  reactStrictMode: true,
+  trailingSlash: true,
+  // This is important to ensure relative paths work in the exported site
+  assetPrefix: './',
 }
 
 mergeConfig(nextConfig, userConfig)

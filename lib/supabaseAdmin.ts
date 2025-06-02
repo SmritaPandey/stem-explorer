@@ -1,9 +1,8 @@
 /**
- * Supabase Admin Client Configuration
+ * Supabase Admin Client Configuration - Static Site Version
  *
- * This file initializes and exports a Supabase client for use in backend API routes
- * that require service_role privileges (e.g., admin operations, direct user manipulation).
- * It uses environment variables for the Supabase URL and Service Role Key.
+ * This file provides a mock Supabase admin client for static site generation.
+ * It simulates admin functionality without requiring actual backend connections.
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
@@ -25,11 +24,25 @@ if (!supabaseServiceKey) {
 const dummyAdminClient = {
   from: () => ({
     select: () => ({
-      eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }),
+      eq: () => ({ 
+        single: () => Promise.resolve({ data: null, error: null }),
+        maybeSingle: () => Promise.resolve({ data: null, error: null }),
+      }),
       maybeSingle: () => Promise.resolve({ data: null, error: null }),
+      order: () => Promise.resolve({ data: [], error: null }),
+      limit: () => ({ 
+        order: () => Promise.resolve({ data: [], error: null }) 
+      }),
     }),
     insert: () => Promise.resolve({ data: null, error: null }),
-    update: () => Promise.resolve({ data: null, error: null }),
+    update: () => ({
+      eq: () => Promise.resolve({ data: null, error: null }),
+      eq: () => ({
+        select: () => ({
+          single: () => Promise.resolve({ data: null, error: null }),
+        }),
+      }),
+    }),
     delete: () => Promise.resolve({ data: null, error: null }),
   }),
   auth: {
@@ -41,7 +54,7 @@ const dummyAdminClient = {
     from: () => ({
       getPublicUrl: () => ({ data: { publicUrl: '' } }),
       remove: () => Promise.resolve({ error: null }),
-      createSignedUrl: () => Promise.resolve({ data: null, error: null }),
+      createSignedUrl: () => Promise.resolve({ data: { signedUrl: '' }, error: null }),
     }),
   },
 };

@@ -1,13 +1,12 @@
 /**
- * Authentication Context
+ * Authentication Context - Static Version
  *
- * This module provides authentication functionality using Supabase Auth.
- * It handles user registration, login, logout, and session management.
+ * This module provides mock authentication functionality for a static site build.
+ * It simulates user registration, login, logout, and session management without backend services.
  */
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Session } from '@supabase/supabase-js';
 import supabase from './supabase';
 
 // Extend Window interface to include toast function
@@ -18,7 +17,7 @@ declare global {
 }
 
 /**
- * Application user model that combines Supabase Auth user with profile data
+ * Application user model
  */
 interface AppUser {
   id: string;
@@ -54,6 +53,26 @@ interface RegisterData {
   password: string;
 }
 
+// Mock users for static site
+const MOCK_USERS: Record<string, AppUser> = {
+  'admin@kidqubit.com': {
+    id: 'admin-id',
+    email: 'admin@kidqubit.com',
+    firstName: 'Admin',
+    lastName: 'User',
+    role: 'admin',
+    profilePicture: 'https://i.pravatar.cc/150?u=admin'
+  },
+  'user@example.com': {
+    id: 'user-id',
+    email: 'user@example.com',
+    firstName: 'John',
+    lastName: 'Doe',
+    role: 'user',
+    profilePicture: 'https://i.pravatar.cc/150?u=john'
+  }
+};
+
 /**
  * Authentication context for providing auth state and functions throughout the app
  */
@@ -63,50 +82,22 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  * Authentication Provider component
  *
  * Manages authentication state and provides auth functions to the application.
- * Handles session persistence, user profile management, and auth state changes.
+ * This is a static version that uses mock data instead of real backend services.
  */
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Check if user is already logged in
+  // Check if user is already logged in (from localStorage in static version)
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Get the current session from Supabase
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (session) {
-          // Get user profile data
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profile) {
-            const userData: AppUser = {
-              id: session.user.id,
-              email: session.user.email || '',
-              firstName: profile.first_name,
-              lastName: profile.last_name,
-              role: profile.role || 'user',
-              profilePicture: profile.profile_picture
-            };
-
-            setUser(userData);
-          } else {
-            // If no profile exists but user is authenticated, create a basic profile
-            const userData: AppUser = {
-              id: session.user.id,
-              email: session.user.email || '',
-              firstName: session.user.user_metadata?.first_name || '',
-              lastName: session.user.user_metadata?.last_name || '',
-              role: session.user.user_metadata?.role || 'user'
-            };
-
-            setUser(userData);
+        // In a static site, we'll use localStorage to simulate persistence
+        if (typeof window !== 'undefined') {
+          const storedUser = localStorage.getItem('mockUser');
+          if (storedUser) {
+            setUser(JSON.parse(storedUser));
           }
         }
       } catch (error) {
@@ -117,75 +108,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          // Get user profile data
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profile) {
-            const userData: AppUser = {
-              id: session.user.id,
-              email: session.user.email || '',
-              firstName: profile.first_name,
-              lastName: profile.last_name,
-              role: profile.role || 'user',
-              profilePicture: profile.profile_picture
-            };
-
-            setUser(userData);
-          }
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-        }
-      }
-    );
-
     checkAuth();
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, []);
 
-  // Login function
+  // Login function - uses mock data
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // Get user profile data
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profile) {
-          const userData: AppUser = {
-            id: data.user.id,
-            email: data.user.email || '',
-            firstName: profile.first_name,
-            lastName: profile.last_name,
-            role: profile.role || 'user',
-            profilePicture: profile.profile_picture
-          };
-
-          setUser(userData);
+      
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const lowerEmail = email.toLowerCase();
+      
+      if (MOCK_USERS[lowerEmail] && password === 'password') {
+        const userData = MOCK_USERS[lowerEmail];
+        setUser(userData);
+        
+        // Store in localStorage for persistence in static site
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('mockUser', JSON.stringify(userData));
         }
-
+        
         router.push('/dashboard');
+      } else {
+        throw new Error('Invalid email or password');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -195,46 +142,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Register function
+  // Register function - creates mock user
   const register = async (userData: RegisterData) => {
     try {
       setIsLoading(true);
-
-      // Register with Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
+      
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const newUser: AppUser = {
+        id: `user-${Date.now()}`,
         email: userData.email,
-        password: userData.password,
-        options: {
-          data: {
-            first_name: userData.firstName,
-            last_name: userData.lastName
-          }
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // Create profile in the profiles table
-        await supabase.from('profiles').insert({
-          id: data.user.id,
-          first_name: userData.firstName,
-          last_name: userData.lastName,
-          email: userData.email,
-          role: 'user'
-        });
-
-        const newUser: AppUser = {
-          id: data.user.id,
-          email: userData.email,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          role: 'user'
-        };
-
-        setUser(newUser);
-        router.push('/dashboard');
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: 'user'
+      };
+      
+      setUser(newUser);
+      
+      // Store in localStorage for persistence in static site
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('mockUser', JSON.stringify(newUser));
       }
+      
+      router.push('/dashboard');
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
@@ -243,16 +174,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Logout function
+  // Logout function - clears mock user
   const logout = async () => {
     try {
       setIsLoading(true);
-      await supabase.auth.signOut();
+      
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       setUser(null);
-
-      // Redirect to homepage after logout
+      
+      // Remove from localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('mockUser');
+      }
+      
       router.push('/');
-
+      
       // Show toast notification if available
       if (window.toast) {
         window.toast({
@@ -267,23 +205,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // OAuth login functions
+  // OAuth login functions (simplified for static site)
   const googleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
+    try {
+      setIsLoading(true);
+      
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Use the default user for demonstration
+      const userData = MOCK_USERS['user@example.com'];
+      setUser(userData);
+      
+      // Store in localStorage for persistence
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('mockUser', JSON.stringify(userData));
       }
-    });
+      
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Google login error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const githubLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
+    try {
+      setIsLoading(true);
+      
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Use the default user for demonstration
+      const userData = MOCK_USERS['user@example.com'];
+      setUser(userData);
+      
+      // Store in localStorage for persistence
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('mockUser', JSON.stringify(userData));
       }
-    });
+      
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('GitHub login error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const isAuthenticated = !!user;
@@ -306,12 +274,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 /**
  * Custom hook for accessing authentication context
- *
- * Provides access to the current user, authentication state, and auth functions.
- * Must be used within an AuthProvider component.
- *
- * @returns The authentication context
- * @throws Error if used outside of an AuthProvider
  */
 export const useAuth = () => {
   const context = useContext(AuthContext);
