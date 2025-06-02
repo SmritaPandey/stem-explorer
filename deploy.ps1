@@ -13,13 +13,17 @@ if (-not (Test-Path ".env.local")) {
   exit 1
 }
 
-# Install dependencies
+# Install dependencies with increased memory limit
 Write-Host "Installing frontend dependencies..." -ForegroundColor Cyan
+$env:NODE_OPTIONS="--max_old_space_size=8192"
 npm install
+Remove-Item Env:NODE_OPTIONS
 
 Write-Host "Installing backend dependencies..." -ForegroundColor Cyan
 Set-Location -Path backend
+$env:NODE_OPTIONS="--max_old_space_size=8192"
 npm install
+Remove-Item Env:NODE_OPTIONS
 Set-Location -Path ..
 
 # Build the application

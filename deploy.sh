@@ -17,13 +17,17 @@ if [ ! -f ".env.local" ]; then
   exit 1
 fi
 
-# Install dependencies
+# Install dependencies with increased memory limit
 echo "Installing frontend dependencies..."
+export NODE_OPTIONS="--max_old_space_size=8192"
 npm install
+unset NODE_OPTIONS
 
 echo "Installing backend dependencies..."
 cd backend
+export NODE_OPTIONS="--max_old_space_size=8192"
 npm install
+unset NODE_OPTIONS
 cd ..
 
 # Build the application
