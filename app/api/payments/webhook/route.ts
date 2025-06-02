@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Readable } from 'stream'; // For Next.js 13+ raw body with Vercel
-import { handleWebhookEvent } from '../../../../backend/src/utils/stripe'; // Adjust path as needed
-// Ensure stripe utility and its sub-functions (handlePaymentSucceeded, etc.)
-// are refactored to use supabaseAdmin or are passed a db client.
+import { Readable } from 'stream';
+import Stripe from 'stripe';
+import supabaseAdmin from '@/lib/supabaseAdmin';
 
-// Helper function to buffer the request stream (for Vercel Edge/Node.js runtime)
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2023-10-16',
+});
+
 async function buffer(readable: Readable): Promise<Buffer> {
   const chunks = [];
   for await (const chunk of readable) {
@@ -15,45 +17,107 @@ async function buffer(readable: Readable): Promise<Buffer> {
 
 export async function POST(request: NextRequest) {
   try {
-    // Vercel Edge/Node.js runtime might require different raw body handling.
-    // For Node.js runtime, request.text() or request.blob() then buffer might work.
-    // For Edge runtime, it's more complex.
-    // For simplicity and common Node.js runtime on Vercel:
-    const rawBody = await request.text(); // Get raw body as text
+    const rawBody = await request.text();
     const signature = request.headers.get('stripe-signature');
 
     if (!signature) {
-      return NextResponse.json({ error: 'Stripe signature is missing' }, { status: 400 });
-    }
-    if (!rawBody) {
-        return NextResponse.json({ error: 'Request body is missing' }, { status: 400 });
+      return NextResponse.json({ error: 'Missing stripe-signature header' }, { status: 400 });
     }
 
-    // Call the existing utility function to handle the webhook event.
-    // This function is responsible for verifying the signature and processing the event,
-    // including calling handlePaymentSucceeded or handlePaymentFailed.
-    // It's assumed that handleWebhookEvent and its downstream functions
-    // are updated to use supabaseAdmin for database operations.
-    const event = await handleWebhookEvent(rawBody, signature);
-
-    // Based on the event type, further actions might be taken here if not fully handled by handleWebhookEvent
-    // For example, if handleWebhookEvent only returns the event and doesn't do DB updates itself:
-    /*
-    if (event.type === 'payment_intent.succeeded') {
-      const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      // await handlePaymentSucceeded(paymentIntent); // Ensure this uses supabaseAdmin
-    } else if (event.type === 'payment_intent.payment_failed') {
-      const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      // await handlePaymentFailed(paymentIntent); // Ensure this uses supabaseAdmin
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      throw new Error('Missing STRIPE_WEBHOOK_SECRET environment variable');
     }
-    */
-    
-    console.log("Webhook processed event:", event.type);
-    return NextResponse.json({ received: true, eventType: event.type });
 
-  } catch (error: any) {
-    console.error('Stripe Webhook error:', error);
-    // Errors from handleWebhookEvent (e.g., signature verification) will be caught here
-    return NextResponse.json({ error: `Webhook Error: ${error.message}`, type: error.type }, { status: 400 });
+    const event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const bookingId = session.metadata?.bookingId;
+        const sessionId = session.metadata?.sessionId;
+
+        if (!bookingId) {
+          throw new Error('No bookingId in session metadata');
+        }
+
+        // Update booking status
+        const { error: bookingError } = await supabaseAdmin
+          .from('bookings')
+          .update({
+            status: 'Confirmed',
+            payment_status: 'paid',
+            payment_id: session.payment_intent as string,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', bookingId);
+
+        if (bookingError) {
+          console.error('Error updating booking:', bookingError);
+          throw bookingError;
+        }
+
+        // Update session capacity if applicable
+        if (sessionId) {
+          const { data: sessionData, error: sessionFetchError } = await supabaseAdmin
+            .from('program_sessions')
+            .select('current_capacity')
+            .eq('id', sessionId)
+            .single();
+
+          if (sessionFetchError) {
+            console.error('Error fetching session:', sessionFetchError);
+            throw sessionFetchError;
+          }
+
+          const { error: sessionUpdateError } = await supabaseAdmin
+            .from('program_sessions')
+            .update({
+              current_capacity: (sessionData.current_capacity || 0) + 1,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', sessionId);
+
+          if (sessionUpdateError) {
+            console.error('Error updating session capacity:', sessionUpdateError);
+            throw sessionUpdateError;
+          }
+        }
+
+        break;
+      }
+
+      case 'checkout.session.expired':
+      case 'payment_intent.payment_failed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const bookingId = session.metadata?.bookingId;
+
+        if (bookingId) {
+          const { error: bookingError } = await supabaseAdmin
+            .from('bookings')
+            .update({
+              status: 'Failed',
+              payment_status: 'failed',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', bookingId);
+
+          if (bookingError) {
+            console.error('Error updating failed booking:', bookingError);
+            throw bookingError;
+          }
+        }
+
+        break;
+      }
+    }
+
+    return NextResponse.json({ received: true });
+  } catch (error) {
+    console.error('Stripe webhook error:', error);
+    return NextResponse.json(
+      { error: 'Webhook handler failed' },
+      { status: 400 }
+    );
   }
 }
