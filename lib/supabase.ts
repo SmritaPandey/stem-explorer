@@ -49,3 +49,5 @@ const supabase = (supabaseUrl && supabaseAnonKey)
   : dummyClient as any; // Use the dummy client if env vars are missing
 
 export default supabase;
+
+export { supabase }
